@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+[L0] GLOBAL CONSTANTS + ELEMENT BINDS
+[L1] ROLE & PAGE ENTRY GUARDS
+[L2] CROSS-PAGE NAV LINKS (signup / forgot / home)
+[L3] THEME HOOK
+[L4] SECURITY UI (CAPTCHA)
+[L5] API CONFIG
+[L6] LOGIN CORE (role-based)
+[L7] FORM SUBMIT BIND
+
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VBS - Login</title>
+    <script src="theme.js"></script>
+
+
+    <style>
+
+        /* ================= LIGHT MODE (GREY / SLATE) ================= */
+:root {
+    --bg-gradient: linear-gradient(
+        135deg,
+        #f1f5f9 0%,
+        #e5e7eb 45%,
+        #f8fafc 100%
+    );
+
+    --card-bg: #ffffff;
+
+    --header-gradient: linear-gradient(
+        135deg,
+        #334155 0%,
+        #1e293b 100%
+    );
+
+    --header-subtitle: rgba(255, 255, 255, 0.9);
+
+    --text-primary: #0f172a;   /* slate-900 */
+    --text-secondary: #475569; /* slate-600 */
+
+    --border-color: #d1d5db;
+
+    --btn-primary: linear-gradient(
+        135deg,
+        #334155 0%,
+        #1e293b 100%
+    );
+
+    --btn-secondary-bg: #e5e7eb;
+    --btn-secondary-text: #0f172a;
+
+    --feature-bg: #f1f5f9;
+
+    --btn-glow: rgba(30, 41, 59, 0.35);
+}
+
+
+ /* ================= DARK MODE (DEFAULT) ================= */
+body.dark {
+    --bg-gradient: linear-gradient(
+        135deg,
+        #0f172a 0%,
+        #020617 100%
+    );
+
+    --card-bg: #0b1220;
+
+    --header-gradient: linear-gradient(
+        135deg,
+        #1e3a8a 0%,
+        #312e81 100%
+    );
+
+    --header-subtitle: rgba(255, 255, 255, 0.85);
+
+    --text-primary: #e5e7eb;
+    --text-secondary: #9ca3af;
+
+    --border-color: #1f2937;
+
+    --btn-primary: linear-gradient(
+        135deg,
+        #2563eb 0%,
+        #4f46e5 100%
+    );
+
+    --btn-secondary-bg: #1f2937;
+    --btn-secondary-text: #e5e7eb;
+
+    --feature-bg: #0f172a;
+
+    --btn-glow: rgba(99, 102, 241, 0.55);
+}
+
+
+        * { margin:0; padding:0; box-sizing:border-box }
+
+        body{
+        font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+        background:var(--bg-gradient);
+        height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:flex-start;   /* 🔑 change */
+        overflow-y:auto;          /* 🔑 allow scroll */
+        }
+
+
+        .container{
+        width:95%;
+        max-width:500px;
+        background:var(--card-bg);
+        border-radius:32px;
+        overflow: hidden;
+        box-shadow:0 22px 55px rgba(0,0,0,.25);
+        position:relative;
+        margin:auto;              /* ✅ THIS */
+        }
+
+
+        .error-text {
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+  color: #dc2626;
+}
+
+.dark .error-text {
+  color: #f87171;
+}
+
+        .theme-toggle{
+          position:absolute;top:16px;right:16px;
+          background:none;border:none;color:#fff;
+          font-size:18px;cursor:pointer;
+        }
+
+        .header{
+          background:var(--header-gradient);
+          border-radius:32px 32px 0 0 ;
+          padding:30px;text-align:center;color:#fff;
+        }
+
+        .content{padding:28px 26px 30px} /* ✅ slightly reduced padding */
+
+        h2{
+          text-align:center;
+          margin-bottom:14px;           /* ✅ reduced */
+          color:var(--text-primary)
+        }
+
+        .form-group{
+          margin-bottom:12px;           /* ✅ reduced from 18px */
+        }
+
+        label{
+          display:block;
+          font-size:14px;
+          margin-bottom:4px;            /* ✅ tighter */
+          color:var(--text-primary)
+        }
+
+        input,select{
+          width:100%;
+          padding:12px;
+          border-radius:10px;
+          border:2px solid var(--border-color);
+          background:var(--card-bg);
+          color:var(--text-primary);
+        }
+
+        /* ================= CAPTCHA ================= */
+        .verify-wrapper{
+          margin-top:12px;              /* ✅ reduced from 22px */
+        }
+
+        #holdBox{
+          position:relative;
+          height:46px;
+          width:100%;
+          max-width:100%;
+          border-radius:12px;
+          border:2px dashed var(--border-color);
+          overflow:hidden;
+          cursor:pointer;
+          margin-top:6px;               /* ✅ tighter */
+          background:rgba(0,0,0,0.03);
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        body.dark #holdBox {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+#holdFill{
+  background: linear-gradient(135deg, var(--verify-green), #16a34a);
+}
+
+:root {
+  --verify-green: #22c55e;
+}
+
+
+        #holdFill{
+          position:absolute;left:0;top:0;
+          height:100%;width:0%;
+          background:linear-gradient(135deg,var(--verify-green),#16a34a);
+        }
+
+        #holdText{
+          position:relative;
+          z-index:2;
+          line-height:46px;
+          font-weight:600;
+          text-align:center;
+          color:var(--text-secondary);
+          width:100%;
+          display:block;
+        }
+
+        #holdBox.verified #holdText{
+          color:#fff!important
+        }
+        /* Prevent text selection on captcha */
+#holdBox,
+#holdText {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+
+
+        /* ================= BUTTON ================= */
+        .btn{
+          width:100%;
+          margin-top:16px;              /* ✅ reduced */
+          padding:14px;
+          border-radius:12px;
+          border:none;
+          font-size:16px;
+          font-weight:600;
+          background:var(--btn-primary);
+          color:#fff;
+          opacity:.6;
+          cursor:not-allowed;
+        }
+
+        .btn.enabled{
+          opacity:1;
+          cursor:pointer
+        }
+
+        .btn.enabled:hover{
+          transform:translateY(-2px);
+          box-shadow:0 10px 28px var(--btn-glow);
+        }
+
+    /* ================= LINKS (ONE LINE) ================= */
+        /* ================= LINKS (BASE) ================= */
+.link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* normal inline text */
+.link .text {
+  margin-right: 6px;
+  color: var(--text-secondary);
+}
+
+/* divider */
+.link .divider {
+  margin: 0 10px;
+  opacity: 0.6;
+  user-select: none;
+}
+
+/* links */
+.link a {
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ================= DARK MODE ================= */
+.dark .link a {
+  color: #93c5fd;
+}
+
+.dark .link .text {
+  color: var(--text-primary);
+}
+
+/* ================= VARIANTS ================= */
+
+/* inline link row (signup | forgot) */
+.link-inline {
+  justify-content: center;
+}
+
+/* single action link (back to home) */
+.link-single {
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.link-single a {
+  font-weight: 500;
+}
+
+        /* space between login button and links */
+.link-inline {
+  margin-top: 18px;   /* adjust: 16–24px if needed */
+}
+
+
+
+
+    </style>
+
+
+</head>
+
+<body>
+
+<div class="container">
+    <button class="theme-toggle" id="themeToggleBtn">🌙</button>
+
+    <div class="header">
+        <h1>VBS</h1>
+        <p id="roleTitle">Login</p>
+    </div>
+
+    <div class="content">
+        <h2>Login</h2>
+        <div id="loginMessage" class="error-text"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input id="username" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input id="password" type="password" required>
+            </div>
+
+            <div class="form-group" id="accountTypeGroup">
+                <label>Account Type</label>
+                <select id="accountType">
+                    <option value="">Select Account</option>
+                    <option>SAVINGS</option>
+                    <option>CURRENT</option>
+                </select>
+            </div>
+
+            <div class="verify-wrapper">
+                <label>Verification</label>
+                <div id="holdBox">
+                    <div id="holdFill"></div>
+                    <span id="holdText">Fill form to verify</span>
+                </div>
+            </div>
+            <button class="btn" id="submitBtn" disabled>Login</button>
+
+        </form>
+
+        <div class="link link-inline">
+            <span class="text">Don’t have an account?</span>
+            <a id="signupLink">Sign Up</a>
+            <span class="divider">|</span>
+            <a id="forgotPasswordLink">Forgot password</a>
+        </div>
+
+        <div class="link link-single">
+            <a id="homeLink">← Back to Home</a>
+        </div>
+
+
+    </div>
+</div>
+<script>
+    /* =====================================================
+       [L0] ELEMENT BINDS
+    ===================================================== */
+    const $ = (id) => document.getElementById(id);
+
+    const els = {
+      form: $("loginForm"),
+      username: $("username"),
+      password: $("password"),
+      accountType: $("accountType"),
+      accountTypeGroup: $("accountTypeGroup"),
+      submitBtn: $("submitBtn"),
+      roleTitle: $("roleTitle"),
+      signupLink: $("signupLink"),
+      forgotLink: $("forgotPasswordLink"),
+      homeLink: $("homeLink"),
+      holdBox: $("holdBox"),
+      holdFill: $("holdFill"),
+      holdText: $("holdText"),
+    };
+
+    /* =====================================================
+       [L1] ROLE GUARD
+    ===================================================== */
+    const role = new URLSearchParams(location.search).get("role");
+
+    if (!["admin", "customer"].includes(role)) {
+      location.href = "/homef.html";
+    }
+
+    els.roleTitle.textContent =
+      role === "admin" ? "Admin Login" : "Customer Login";
+
+    els.accountTypeGroup.style.display =
+      role === "admin" ? "none" : "block";
+
+    /* =====================================================
+       [L2] NAV LINKS
+    ===================================================== */
+    els.signupLink.onclick = () =>
+      (location.href = `/signupf.html?role=${role}`);
+
+    els.homeLink.onclick = () => {
+      localStorage.removeItem("captchaFailCount");
+      localStorage.removeItem("captchaLockedUntil");
+      location.href = "/homef.html";
+    };
+
+    els.forgotLink.onclick = () => {
+      const u = els.username.value.trim();
+      if (!u) return alert("Enter username first");
+      location.href = `/forgot-passwordf.html?username=${encodeURIComponent(u)}&role=${encodeURIComponent(role)}`;
+    };
+
+    /* =====================================================
+       [L3] THEME (SINGLE SOURCE OF TRUTH)
+    ===================================================== */
+    const body = document.body;
+
+
+
+    /* =====================================================
+       [L4] CAPTCHA
+    ===================================================== */
+    const CAPTCHA = {
+      HOLD_TIME: 5000,
+      LOCK_MS: 10000,
+      MAX_FAILS: 1,
+
+      verified: false,
+      holding: false,
+      progress: 0,
+      timer: null,
+      textTimer: null,
+
+      fails: Number(localStorage.getItem("captchaFailCount")) || 0,
+      lockedUntil: Number(localStorage.getItem("captchaLockedUntil")) || 0,
+    };
+    let verifiedFormSignature = "";
+
+    function getFormSignature() {
+      return [
+        els.username.value.trim(),
+        els.password.value,
+        role === "customer" ? els.accountType.value : "",
+      ].join("||");
+    }
+
+    function isLocked() {
+      return Date.now() < CAPTCHA.lockedUntil;
+    }
+
+    function isFormComplete() {
+      if (!els.username.value.trim()) return false;
+      if (!els.password.value.trim()) return false;
+      if (role === "customer" && !els.accountType.value) return false;
+      return true;
+    }
+
+    function updateCaptchaText() {
+      if (CAPTCHA.verified) return;
+
+      if (CAPTCHA.holding) {
+        els.holdText.textContent = "Verifying...";
+        return;
+      }
+
+      if (isLocked()) {
+        const sec = Math.ceil((CAPTCHA.lockedUntil - Date.now()) / 1000);
+        els.holdText.textContent = `Locked (${sec}s)`;
+        return;
+      }
+
+      if (!isFormComplete()) {
+        els.holdText.textContent = "Fill form to verify";
+        return;
+      }
+
+      els.holdText.textContent =
+        `Hold to verify (${Math.max(1, CAPTCHA.MAX_FAILS - CAPTCHA.fails)} attempt left)`;
+    }
+
+    function resetCaptcha() {
+      CAPTCHA.verified = false;
+      verifiedFormSignature = "";
+      CAPTCHA.holding = false;
+      CAPTCHA.progress = 0;
+
+      clearInterval(CAPTCHA.timer);
+      clearInterval(CAPTCHA.textTimer);
+
+      els.holdFill.style.width = "0%";
+      els.holdBox.classList.remove("verified");
+
+      els.submitBtn.disabled = true;
+      els.submitBtn.classList.remove("enabled");
+
+      CAPTCHA.textTimer = setInterval(updateCaptchaText, 500);
+    }
+
+    resetCaptcha();
+
+    /* ----- HOLD START ----- */
+    els.holdBox.onmousedown = els.holdBox.ontouchstart = () => {
+      if (CAPTCHA.verified || CAPTCHA.holding || isLocked()) return;
+      if (!isFormComplete()) return;
+
+      CAPTCHA.holding = true;
+      CAPTCHA.timer = setInterval(() => {
+        CAPTCHA.progress += 100 / (CAPTCHA.HOLD_TIME / 60);
+        els.holdFill.style.width = `${CAPTCHA.progress}%`;
+
+        if (CAPTCHA.progress >= 100) {
+          clearInterval(CAPTCHA.timer);
+          clearInterval(CAPTCHA.textTimer);
+
+          CAPTCHA.verified = true;
+          verifiedFormSignature = getFormSignature();
+          CAPTCHA.holding = false;
+
+          els.holdBox.classList.add("verified");
+          els.holdText.textContent = "✔ Verified";
+
+          els.submitBtn.disabled = false;
+          els.submitBtn.classList.add("enabled");
+
+          CAPTCHA.fails = 0;
+          localStorage.removeItem("captchaFailCount");
+          localStorage.removeItem("captchaLockedUntil");
+        }
+      }, 60);
+    };
+
+    /* ----- HOLD CANCEL ----- */
+    els.holdBox.onmouseup =
+    els.holdBox.onmouseleave =
+    els.holdBox.ontouchend = () => {
+      if (!CAPTCHA.holding || CAPTCHA.verified) return;
+
+      clearInterval(CAPTCHA.timer);
+      CAPTCHA.holding = false;
+
+      CAPTCHA.fails++;
+      localStorage.setItem("captchaFailCount", CAPTCHA.fails);
+
+      CAPTCHA.lockedUntil = Date.now() + CAPTCHA.LOCK_MS;
+      localStorage.setItem("captchaLockedUntil", CAPTCHA.lockedUntil);
+
+      resetCaptcha();
+    };
+
+    /* ----- RESET RULES ----- */
+    ["input", "change", "blur"].forEach(evt => {
+      els.username.addEventListener(evt, resetCaptcha);
+      els.password.addEventListener(evt, resetCaptcha);
+    });
+
+    if (els.accountType) {
+      ["input", "change", "blur"].forEach(evt =>
+        els.accountType.addEventListener(evt, resetCaptcha)
+      );
+    }
+
+    setInterval(() => {
+      if (!CAPTCHA.verified) return;
+      if (getFormSignature() !== verifiedFormSignature) {
+        resetCaptcha();
+      }
+    }, 400);
+
+    /* =====================================================
+       [L5] API
+    ===================================================== */
+    const API_URL = "http://localhost:8082";
+
+    async function sendLogin(payload) {
+  const endpoint =
+    role === "admin" ? "/login/admin": "/login/user";
+
+  const res = await fetch(`${API_URL}${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  console.log("LOGIN PAYLOAD", payload);
+
+  return (await res.text()).trim();
+}
+
+
+    /* =====================================================
+       [L6] LOGIN
+    ===================================================== */
+    async function login() {
+      const payload = {
+        username: els.username.value.trim(),
+        password: els.password.value.trim(),
+        role,
+        ...(role === "customer" && { accountType: els.accountType.value }),
+      };
+
+      const result = await sendLogin(payload);
+
+      if (/^\d+$/.test(result)) {
+        localStorage.setItem("userId", result);
+        localStorage.setItem("role", role);
+        if (window.VBSSession && typeof window.VBSSession.startSession === "function") {
+          window.VBSSession.startSession(role, result);
+        }
+        els.form.reset();
+        location.href =
+        role === "admin"
+          ? "/admin.html"
+          :"/dashboardf.html";
+
+      } else {
+        $("loginMessage").textContent = result;
+      }
+    }
+
+    /* =====================================================
+       [L7] SUBMIT
+    ===================================================== */
+    els.form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!CAPTCHA.verified) return;
+      if (getFormSignature() !== verifiedFormSignature) {
+        resetCaptcha();
+        return;
+      }
+      login();
+    });
+
+
+</script>
+</body>
+</html>

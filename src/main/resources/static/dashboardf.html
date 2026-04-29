@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VBS- Customer Dashboard</title>
+  <script src="theme.js"></script>
+  <!--
+  ====================================================================
+  DASHBOARD SCRIPT â€” LOGIC INDEX (FRONTEND â†” BACKEND)
+  ====================================================================
+
+  [L1] GLOBAL CONSTANTS & SESSION STATE
+       â†’ API URL, userId, role, limits
+
+  [L3] AUTH / ACCESS CONTROL
+       â†’ Real auth from localStorage
+
+  [L4] PROFILE HYDRATION (UI ONLY)
+       â†’ Populate header + dropdown (NO backend writes)
+
+  [L5] DASHBOARD DATA CORE  [BACKEND: GET /get-details/{id}]
+       â†’ Username, balance, account status, limits
+
+  [L6] TRANSACTION MODALS (UI)
+       â†’ Open / close deposit, withdraw, transfer
+
+  [L7] TRANSACTION ACTIONS (BACKEND)
+       â†’ Withdraw   â†’ POST /withdraw
+       â†’ Deposit    â†’ POST /deposit
+       â†’ Transfer   â†’ POST /transfer
+
+  [L8] PROFILE UPDATE (BACKEND)
+       â†’ Update fields â†’ POST /update
+
+  [L9] NAVIGATION
+       â†’ Passbook routing with userId
+
+  [L10] PROFILE DROPDOWN (UI)
+        â†’ View profile, logout
+
+  [L11] ACCOUNT RULES (UI ENFORCEMENT)
+        â†’ Limits, freeze handling
+
+  [L12] PAGE BOOTSTRAP
+        â†’ Auth â†’ Dashboard load â†’ Notifications
+
+  [L13] NOTIFICATIONS
+        â†’ GET /notifications/{userId}?limit=3
+        â†’ Expected: [{ icon, title, description, createdAt }, ...]
+
+  ====================================================================
+  -->
+  <style>
+
+    /* ================= LIGHT MODE ================= */
+    :root {
+        --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e5e7eb 45%, #f8fafc 100%);
+        --muted-bg: #f1f5f9;
+        --border-soft: #cbd5e1;
+        --card-bg: #ffffff;
+        --header-gradient: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        --header-subtitle: rgba(255, 255, 255, 0.9);
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --border-color: #d1d5db;
+        --btn-primary: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        --btn-secondary-bg: #e5e7eb;
+        --btn-secondary-text: #0f172a;
+        --feature-bg: #f1f5f9;
+        --btn-glow: rgba(30, 41, 59, 0.35);
+    }
+
+    /* ================= DARK MODE ================= */
+    body.dark {
+        --bg-gradient: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+        --muted-bg: #0f172a;
+        --border-soft: #334155;
+        --card-bg: #0b1220;
+        --header-gradient: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+        --header-subtitle: rgba(255, 255, 255, 0.85);
+        --text-primary: #e5e7eb;
+        --text-secondary: #9ca3af;
+        --border-color: #1f2937;
+        --btn-primary: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+        --btn-secondary-bg: #1f2937;
+        --btn-secondary-text: #e5e7eb;
+        --feature-bg: #0f172a;
+        --btn-glow: rgba(99, 102, 241, 0.55);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg-gradient);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+
+    /* ================= HEADER ================= */
+    .header {
+        background: var(--header-gradient);
+        padding: 30px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-left p {
+        font-size: 12px;
+        opacity: 0.75;
+        margin-bottom: 6px;
+        letter-spacing: 0.4px;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* ================= HEADER BUTTONS ================= */
+    .logout-btn {
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.25s;
+    }
+    .logout-btn:hover { background: rgba(255, 255, 255, 0.25); }
+
+    #themeToggleBtn { box-shadow: none; outline: none; }
+    #themeToggleBtn:focus-visible { outline: 2px solid rgba(255,255,255,0.4); outline-offset: 2px; }
+
+    /* ================= NOTIFICATIONS ================= */
+    .notif-wrapper { position: relative; }
+
+    .notif-btn {
+        position: relative;
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 16px;
+        cursor: pointer;
+        color: white;
+        transition: background 0.25s;
+    }
+    .notif-btn:hover { background: rgba(255, 255, 255, 0.25); }
+
+    .notif-badge {
+        position: absolute;
+        top: -4px; right: -4px;
+        background: #ef4444;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 1px 5px;
+        line-height: 1.4;
+    }
+    .notif-badge.hidden { display: none; }
+
+    .notif-dropdown {
+        display: none;
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        width: 300px;
+        background: var(--card-bg);
+        border-radius: 14px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+        z-index: 1001;
+        overflow: hidden;
+    }
+    body.dark .notif-dropdown { box-shadow: 0 25px 60px rgba(0,0,0,0.55); }
+    .notif-dropdown.show { display: block; animation: popIn 0.2s ease-out; }
+
+    .notif-header {
+        padding: 12px 16px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .notif-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--border-color);
+        transition: background 0.2s;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--muted-bg); }
+
+    .notif-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .notif-body { display: flex; flex-direction: column; gap: 3px; }
+    .notif-desc  { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+    .notif-time  { font-size: 11px; color: var(--text-secondary); opacity: 0.7; margin-top: 2px; }
+
+    .notif-footer {
+        padding: 10px 16px;
+        border-top: 1px solid var(--border-color);
+    }
+    .notif-show-all {
+        width: 100%;
+        padding: 9px;
+        border-radius: 8px;
+        border: none;
+        background: var(--btn-primary);
+        color: white;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.2s;
+    }
+    .notif-show-all:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ================= PROFILE ================= */
+    .profile-wrapper { position: relative; }
+
+    .profile-trigger {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        width: fit-content; /* auto width to match name */
+        white-space: nowrap; /* prevent wrapping of long names */
+        flex: 0 0 auto; /* don't stretch inside header */
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        color: white;
+        background: rgba(255, 255, 255, 0.15);
+        transition: background 0.25s;
+    }
+    .profile-trigger:hover { background: rgba(255, 255, 255, 0.25); }
+    .profile-trigger .caret { font-size: 12px; opacity: 0.85; }
+
+    #profileName {
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .profile-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        left: 0;
+        width: 260px;
+        padding: 16px;
+        background: var(--card-bg);
+        border-radius: 14px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+        display: none;
+        z-index: 1000;
+        text-align: center;
+    }
+    body.dark .profile-dropdown { box-shadow: 0 25px 60px rgba(0,0,0,0.55); }
+    .profile-dropdown.show { display: block; animation: popIn 0.2s ease-out; }
+
+    @keyframes popIn {
+        from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .profile-meta { display: grid; gap: 12px; margin-bottom: 14px; }
+    .profile-meta > div {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        align-items: center;
+        column-gap: 12px;
+    }
+    .profile-meta small { font-size: 11px; color: var(--text-secondary); text-align: left; }
+    .profile-meta span  { font-size: 13px; color: var(--text-primary); font-weight: 600; text-align: left; }
+
+    .view-profile, .profile-logout {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        background: var(--btn-secondary-bg);
+        color: var(--btn-secondary-text);
+        transition: background 0.25s, transform 0.2s;
+    }
+    .view-profile { margin-bottom: 10px; }
+    .view-profile:hover {
+        background: var(--btn-primary);
+        color: #fff;
+        box-shadow: 0 6px 18px var(--btn-glow);
+        transform: translateY(-1px);
+    }
+    .profile-logout:hover { background: rgba(239,68,68,0.15); color: #dc2626; }
+
+    /* ================= CONTENT ================= */
+    .content { padding: 40px 30px; }
+
+    .dashboard-header { text-align: left; margin-bottom: 40px; }
+    .dashboard-header h2 { color: var(--text-primary); font-size: 24px; }
+
+    /* ================= BALANCE ================= */
+    .account-balance {
+        background: var(--header-gradient);
+        color: white;
+        padding: 5px  ;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .account-balance p { font-size: 14px; opacity: 0.9; margin-bottom: 10px; padding: 0px 4px; }
+    .balance-amount          { font-size: 36px; font-weight: bold; }
+
+    /* ================= TXN LIMITS ================= */
+    .txn-card {
+        background: var(--muted-bg);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 24px;
+        color: var(--text-primary);
+    }
+    .txn-card h4 {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 14px;
+        color: var(--text-secondary);
+    }
+    .txn-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        text-align: center;
+    }
+    .txn-grid small {
+        font-size: 11px;
+        letter-spacing: 0.3px;
+        color: var(--text-secondary);
+        display: block;
+    }
+    .txn-grid span {
+        font-size: 16px;
+        font-weight: 700;
+        margin-top: 6px;
+        display: inline-block;
+        letter-spacing: 0.4px;
+    }
+    .txn-grid span .max    { font-size: 13px; font-weight: 500; opacity: 0.6; }
+    .txn-grid span[data-zero="true"] { color: #ef4444; }
+
+    /* ================= TRANSACTION BUTTONS ================= */
+    .transaction-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .txn-action {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .txn-count-label {
+        text-align: center;
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 14px;
+        text-transform: none;
+    }
+
+    .txn-count-label span {
+        display: block;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-top: 4px;
+    }
+
+    .txn-count-label span[data-full="true"] {
+        color: #ef4444;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+        color: white;
+        text-transform: none;
+    }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(30%); }
+
+    @media (max-width: 768px) {
+        .transaction-buttons { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* â”€â”€ Withdraw â”€â”€ */
+.btn-withdraw {
+background: #9e4244;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.btn-withdraw:hover {
+background: #8a3a3c;
+box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+transform: translateY(-2px);
+}
+body.dark .btn-withdraw {
+background: #b15557;
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+body.dark .btn-withdraw:hover {
+background: #c16567;
+box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* â”€â”€ Deposit â”€â”€ */
+.btn-deposit {
+background: #2c5f8a;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.btn-deposit:hover {
+background: #25527a;
+box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+transform: translateY(-2px);
+}
+body.dark .btn-deposit {
+background: #3973a3;
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+body.dark .btn-deposit:hover {
+background: #4487b8;
+box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* â”€â”€ Transfer â”€â”€ */
+.btn-transfer {
+background: #2d6a4f;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.btn-transfer:hover {
+background: #265e45;
+box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+transform: translateY(-2px);
+}
+body.dark .btn-transfer {
+background: #3a8363;
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+body.dark .btn-transfer:hover {
+background: #449b77;
+box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* â”€â”€ Passbook â”€â”€ */
+.btn-passbook {
+background: #8b6f4c;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.btn-passbook:hover {
+background: #7d6343;
+box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+transform: translateY(-2px);
+}
+body.dark .btn-passbook {
+background: #a5855e;
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+body.dark .btn-passbook:hover {
+background: #b99a72;
+box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+            /* ================= MESSAGES ================= */
+    .message { padding: 14px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; display: none; }
+    .message.show { display: block; }
+    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .message.error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    body.dark .message.success { background: rgba(34,197,94,0.15); color: #bbf7d0; border: 1px solid rgba(34,197,94,0.35); }
+    body.dark .message.error   { background: rgba(239,68,68,0.15); color: #fecaca;  border: 1px solid rgba(239,68,68,0.35); }
+
+    /* ================= MODALS ================= */
+    .modal { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
+
+    .modal-content {
+        background: var(--card-bg);
+        color: var(--text-primary);
+        padding: 30px;
+        border-radius: 14px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+    }
+    .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text-primary); }
+    .modal-content form { display: flex; flex-direction: column; gap: 18px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 13px; color: var(--text-primary); }
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 8px;
+        border: 2px solid var(--border-soft);
+        background: var(--card-bg);
+        color: var(--text-primary);
+        font-size: 14px;
+        caret-color: #667eea;
+    }
+    body.dark .form-group input,
+    body.dark .form-group select { caret-color: #93c5fd; }
+    .form-group input:focus,
+    .form-group select:focus { outline: none; border-color: #667eea; }
+    .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
+    .btn-modal  { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; min-width: 110px; }
+    .btn-submit { background: var(--header-gradient); color: white; }
+    .btn-cancel { background: var(--muted-bg); color: var(--text-primary); }
+
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+
+    <!-- LEFT: Virtual Banking System label + profile trigger -->
+    <div class="header-left">
+      <p>Virtual Banking System</p>
+      <div class="profile-wrapper">
+        <div class="profile-trigger" id="profileTrigger">
+          <span id="profileName">User</span>
+          <span class="caret"></span>
+        </div>
+        <div class="profile-dropdown" id="profileDropdown">
+          <button id="viewProfileLink" class="view-profile"
+              onclick="window.location.href='/view-profilef.html?id=' + (localStorage.getItem('userId') || '')">
+            View Profile
+          </button>
+          <div class="profile-meta">
+            <div>
+              <small>Email</small>
+              <span id="profileEmail"></span>
+            </div>
+            <div>
+              <small>Status</small>
+              <span id="profileStatus">ACTIVE</span>
+            </div>
+            <div>
+              <small>Account Type</small>
+              <span id="profileAccountType">SAVINGS</span>
+            </div>
+          </div>
+          <button class="profile-logout">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Theme toggle + Notification bell -->
+    <div class="header-right">
+      <button class="logout-btn" id="themeToggleBtn"></button>
+
+      <div class="notif-wrapper">
+        <button class="notif-btn" id="notifBtn">
+          🔔
+          <span class="notif-badge hidden" id="notifBadge">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">Notifications</div>
+          <div class="notif-list" id="notifList">
+            <!-- populated by loadNotifications() -->
+          </div>
+          <div class="notif-footer">
+                <button class="notif-show-all"
+                    onclick="window.location.href='/view-profilef.html?id=' + (localStorage.getItem('userId') || '') + '&section=activity&ts=' + Date.now()">
+              Show All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /header -->
+
+  <div class="content">
+
+    <div class="dashboard-header">
+      <h2 id="welcomeText">Welcome</h2>
+    </div>
+
+    <div id="dashMessage" class="message"></div>
+
+
+    <div class="account-balance">
+      <p id="N">Available Balance</p>
+      <div class="balance-amount">₹ <span id="balance">0.00</span></div>
+    </div>
+
+
+    <div class="transaction-buttons">
+      <div class="txn-action">
+        <div class="txn-count-label">
+          Withdraw Count
+          <span id="withdrawTxnCount">0</span>
+        </div>
+        <button class="btn btn-action btn-withdraw" onclick="openWithdrawModal()">Withdraw</button>
+      </div>
+
+      <div class="txn-action">
+        <div class="txn-count-label">
+          Deposit Count
+          <span id="depositTxnCount">0</span>
+        </div>
+        <button class="btn btn-action btn-deposit" onclick="openDepositModal()">Deposit</button>
+      </div>
+
+      <div class="txn-action">
+        <div class="txn-count-label">
+          Transfer Count
+          <span id="transferTxnCount">0</span>
+        </div>
+        <button class="btn btn-action btn-transfer" onclick="openTransferModal()">Transferr</button>
+      </div>
+
+      <div class="txn-action">
+        <div class="txn-count-label">
+          Total Count
+          <span id="totalTxnCountBox">0</span>
+        </div>
+        <button class="btn btn-action btn-passbook" onclick="goToPassbook()">Passbook</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<div id="withdrawModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">Withdraw Funds</div>
+    <form id="withdrawForm">
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" id="withdrawAmount" step="0.01" min="0.01" required>
+      </div>
+      <div class="modal-buttons">
+        <button type="button" class="btn-modal btn-cancel" onclick="closeWithdrawModal()">Cancel</button>
+        <button type="submit" class="btn-modal btn-submit">Withdraw</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="depositModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">Deposit Funds</div>
+    <form id="depositForm">
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" id="depositAmount" step="0.01" min="0.01" required>
+      </div>
+      <div class="modal-buttons">
+        <button type="button" class="btn-modal btn-cancel" onclick="closeDepositModal()">Cancel</button>
+        <button type="submit" class="btn-modal btn-submit">Deposit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+<div id="transferModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">Transfer Funds</div>
+    <form id="transferForm">
+      <div class="form-group">
+        <label>Recipient Username</label>
+        <input type="text" id="transferUsername" required>
+      </div>
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" id="transferAmount" step="0.01" min="0.01" required>
+      </div>
+      <div class="modal-buttons">
+        <button type="button" class="btn-modal btn-cancel" onclick="closeTransferModal()">Cancel</button>
+        <button type="submit" class="btn-modal btn-submit">Send</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+
+  /* ============================================================
+     [L1] GLOBAL CONSTANTS & SESSION STATE
+  ============================================================ */
+  const API_URL   = "http://localhost:8082";
+  const TXN_LIMIT = 5;
+
+  let userId = null;
+  let role   = "customer";
+  let accountType = null;
+
+  const logoutBtn = document.querySelector(".profile-logout");
+
+
+  /* ============================================================
+     [L3] AUTH / ACCESS CONTROL
+  ============================================================ */
+  function validateUserAccess() {
+      const storedUserId = localStorage.getItem("userId");
+      const storedRole   = localStorage.getItem("role") || "customer";
+
+      if (!storedUserId) {
+          window.location.href = "/loginf.html";
+          return;
+      }
+
+      userId = storedUserId;
+      role   = storedRole;
+      window.history.replaceState({}, document.title, "dashboardf.html");
+  }
+
+
+  /* ============================================================
+     [L4] PROFILE HYDRATION (UI ONLY)
+  ============================================================ */
+  function hydrateProfile(data) {
+      document.getElementById("profileName").textContent        = data.name;
+      document.getElementById("profileEmail").textContent       = maskEmail(data.email);
+      document.getElementById("profileStatus").textContent      = data.accountStatus;
+      document.getElementById("profileAccountType").textContent = data.accountType;
+      accountType = data.accountType;
+  }
+
+  function maskEmail(email) {
+      const [user, domain] = email.split("@");
+      return user.slice(0, 2) + ".........@" + domain;
+  }
+
+
+  /* ============================================================
+     [L5] DASHBOARD DATA CORE  [BACKEND: GET /get-details/{id}]
+  ============================================================ */
+  async function loadDashboard() {
+      try {
+          const res  = await fetch(`${API_URL}/get-details/${userId}`);
+          const data = await res.json();
+
+          document.getElementById("welcomeText").textContent =
+              `Welcome, ${data.name.split(" ")[0]}`;
+          document.getElementById("balance").textContent =
+              data.balance.toFixed(2);
+
+          hydrateProfile(data);
+          applyTransactionCounts(data);
+          applyAccountFreeze(data.accountStatus, data);
+
+      } catch {
+          showMessage("dashMessage", "Failed to load dashboard", "error");
+      }
+  }
+
+
+  /* ============================================================
+     [L6] TRANSACTION MODALS (UI)
+  ============================================================ */
+  function openWithdrawModal()  { withdrawModal.classList.add("show"); }
+  function closeWithdrawModal() { withdrawModal.classList.remove("show"); withdrawForm.reset(); }
+
+  function openDepositModal()   { depositModal.classList.add("show"); }
+  function closeDepositModal()  { depositModal.classList.remove("show"); depositForm.reset(); }
+
+  function openTransferModal()  { transferModal.classList.add("show"); }
+  function closeTransferModal() { transferModal.classList.remove("show"); transferForm.reset(); }
+
+  function openUpdateModal()    { updateModal.classList.add("show"); }
+  function closeUpdateModal()   { updateModal.classList.remove("show"); updateForm.reset(); }
+
+
+  /* ============================================================
+     [L7] TRANSACTION ACTIONS  [BACKEND]
+  ============================================================ */
+
+  /* POST /withdraw */
+  withdrawForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const amount = parseFloat(withdrawAmount.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+          showMessage("dashMessage", "Amount must be greater than 0.", "error");
+          return;
+      }
+      const payload = { id: userId, amount };
+      const res = await fetch(`${API_URL}/withdraw`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+      });
+
+      let message = "";
+      try {
+          const data = await res.json();
+          if (data && typeof data === "object") {
+              // Support both correct and misspelled key used by backend.
+              if ("message" in data) message = String(data.message);
+              else if ("messsage" in data) message = String(data.messsage);
+              else message = JSON.stringify(data);
+          } else {
+              message = JSON.stringify(data);
+          }
+      } catch {
+          message = await res.text();
+      }
+
+      closeWithdrawModal(); // Close modal on success AND failure
+      if (res.ok) {
+          loadDashboard();
+          showMessage("dashMessage", (message || "Withdrawal successful").trim(), "success");
+      } else {
+          showMessage("dashMessage", (message || "Withdrawal failed").trim(), "error");
+      }
+  });
+
+  /* POST /deposit */
+  depositForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const amount = parseFloat(depositAmount.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+          showMessage("dashMessage", "Amount must be greater than 0.", "error");
+          return;
+      }
+      const payload = { id: userId, amount };
+      const res = await fetch(`${API_URL}/deposit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+      });
+
+      let message = "";
+      try {
+          const data = await res.json();
+          if (data && typeof data === "object") {
+              if ("message" in data) message = String(data.message);
+              else if ("messsage" in data) message = String(data.messsage);
+              else message = JSON.stringify(data);
+          } else {
+              message = JSON.stringify(data);
+          }
+      } catch {
+          message = await res.text();
+      }
+
+      closeDepositModal(); // Close modal on success AND failure
+      if (res.ok) {
+          loadDashboard();
+          showMessage("dashMessage", (message || "Deposit successful").trim(), "success");
+      } else {
+          showMessage("dashMessage", (message || "Deposit failed").trim(), "error");
+      }
+  });
+
+  /* POST /transfer */
+  transferForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const amount = parseFloat(transferAmount.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+          showMessage("dashMessage", "Amount must be greater than 0.", "error");
+          return;
+      }
+      const payload = {
+          id: userId,
+          username: transferUsername.value.trim(),
+          amount
+      };
+      const res = await fetch(`${API_URL}/transfer`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+      });
+
+      let message = "";
+      try {
+          const data = await res.json();
+          if (data && typeof data === "object") {
+              if ("message" in data) message = String(data.message);
+              else if ("messsage" in data) message = String(data.messsage);
+              else message = JSON.stringify(data);
+          } else {
+              message = JSON.stringify(data);
+          }
+      } catch {
+          message = await res.text();
+      }
+
+      closeTransferModal(); // Close modal on success AND failure
+      if (res.ok) {
+          loadDashboard();
+          showMessage("dashMessage", (message || "Transfer successful").trim(), "success");
+      } else {
+          showMessage("dashMessage", (message || "Transfer failed").trim(), "error");
+      }
+  });
+
+
+
+  /* ============================================================
+     [L9] NAVIGATION
+  ============================================================ */
+  function goToPassbook() {
+    window.location.href = `/passbookf.html?id=${userId}`;
+  }
+
+
+  /* ============================================================
+     [L10] PROFILE DROPDOWN
+  ============================================================ */
+  profileTrigger?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle("show");
+      document.getElementById("notifDropdown").classList.remove("show");
+  });
+
+  logoutBtn?.addEventListener("click", () => {
+      if (window.VBSSession && typeof window.VBSSession.endSession === "function") {
+          window.VBSSession.endSession();
+      } else {
+          localStorage.removeItem("userId");
+          localStorage.removeItem("role");
+      }
+      window.location.href = "/homef.html";
+  });
+
+  document.addEventListener("click", (e) => {
+      if (!document.getElementById("profileTrigger").contains(e.target))
+          profileDropdown.classList.remove("show");
+      if (!document.getElementById("notifBtn").contains(e.target))
+          document.getElementById("notifDropdown").classList.remove("show");
+  });
+
+
+  /* ============================================================
+     [L11] ACCOUNT RULES (UI ENFORCEMENT)
+  ============================================================ */
+  function applyTransactionCounts(data) {
+      // Only show transaction counts for SAVINGS accounts
+      const normalizedType = String(data?.accountType || "").toUpperCase();
+      const isSavings = normalizedType === "SAVINGS";
+      const countLabels = document.querySelectorAll(".txn-count-label");
+      countLabels.forEach(el => {
+          el.style.display = isSavings ? "block" : "none";
+      });
+
+      if (!isSavings) return;
+
+      // Counts displayed above each action button.
+      const dDone = Number(data.depositCount)  || 0;
+      const wDone = Number(data.withdrawCount) || 0;
+      const tDone = Number(data.transferCount) || 0;
+      const totalDone = dDone + wDone + tDone;
+
+      const wEl = document.getElementById("withdrawTxnCount");
+      const dEl = document.getElementById("depositTxnCount");
+      const tEl = document.getElementById("transferTxnCount");
+      const totalEl = document.getElementById("totalTxnCountBox");
+
+      if (wEl) {
+          wEl.textContent = wDone;
+          wEl.dataset.full = (wDone >= 5);
+      }
+      if (dEl) {
+          dEl.textContent = dDone;
+          dEl.dataset.full = (dDone >= 5);
+      }
+      if (tEl) {
+          tEl.textContent = tDone;
+          tEl.dataset.full = (tDone >= 5);
+      }
+      if (totalEl) totalEl.textContent = totalDone;
+  }
+
+  function applyAccountFreeze(status, data = null) {
+      const normalizedStatus = String(status || "").toUpperCase();
+      const isActive = normalizedStatus === "ACTIVE";
+      const isPending = normalizedStatus === "PENDING";
+      const depositBtn = document.querySelector(".btn-deposit");
+      const withdrawBtn = document.querySelector(".btn-withdraw");
+      const transferBtn = document.querySelector(".btn-transfer");
+
+      if (!depositBtn || !withdrawBtn || !transferBtn) return;
+
+      const currentType = String(data?.accountType || accountType || "").toUpperCase();
+      const isCurrent = currentType === "CURRENT";
+      const allowDepositForPendingCurrent = isPending && isCurrent;
+
+      // Pending current accounts can only deposit until balance reaches 10k.
+      depositBtn.disabled = !(isActive || allowDepositForPendingCurrent);
+      withdrawBtn.disabled = !isActive;
+      transferBtn.disabled = !isActive;
+  }
+
+
+  /* ============================================================
+     [L13] NOTIFICATIONS  [BACKEND: GET /notifications/{id}?limit=3]
+     Expected response array items: { icon, description, createdAt }
+  ============================================================ */
+  function pickNotificationDate(item) {
+      const keys = ["createdAt", "created_at", "date", "timestamp", "time", "notifiedAt"];
+      for (const key of keys) {
+          const value = item?.[key];
+          if (value !== undefined && value !== null && String(value).trim() !== "") return value;
+      }
+      return "";
+  }
+
+  function normalizeNotificationDate(value) {
+      if (value === undefined || value === null) return "";
+      let text = String(value).trim();
+      if (!text) return "";
+      text = text.replace(" ", "T");
+      text = text.replace(/(\.\d{3})\d+/, "$1");
+      return text;
+  }
+
+  function getNotificationTime(item) {
+      const normalized = normalizeNotificationDate(pickNotificationDate(item));
+      const time = new Date(normalized).getTime();
+      return Number.isFinite(time) ? time : 0;
+  }
+
+  async function loadNotifications() {
+      const list  = document.getElementById("notifList");
+      const badge = document.getElementById("notifBadge");
+
+      try {
+          const res = await fetch(`${API_URL}/notifications/${userId}?limit=3`);
+          if (!res.ok) throw new Error();
+
+          const data = await res.json();
+          const rows = (Array.isArray(data) ? data : [])
+              .sort((a, b) => getNotificationTime(b) - getNotificationTime(a))
+              .slice(0, 3);
+
+          if (rows.length === 0) {
+              list.innerHTML = `<div class="notif-item"><div class="notif-body"><div class="notif-desc">No new notifications</div></div></div>`;
+              badge.classList.add("hidden");
+              return;
+          }
+
+          badge.textContent = rows.length;
+          badge.classList.remove("hidden");
+
+          list.innerHTML = rows.map(n => {
+              const ts = normalizeNotificationDate(pickNotificationDate(n));
+              return `
+              <div class="notif-item">
+                  <div class="notif-icon">${n.icon || "\uD83D\uDD14"}</div>
+                  <div class="notif-body">
+                      <div class="notif-desc">${n.description || n.message || "Notification"}</div>
+                      <div class="notif-time">${formatNotifTime(ts)}</div>
+                  </div>
+              </div>
+          `;
+          }).join("");
+
+      } catch {
+          list.innerHTML = `<div class="notif-item"><div class="notif-body"><div class="notif-desc">Unable to load notifications</div></div></div>`;
+      }
+  }
+
+  function formatNotifTime(ts) {
+      if (!ts) return "";
+      const parsedTime = new Date(normalizeNotificationDate(ts)).getTime();
+      if (!Number.isFinite(parsedTime)) return "";
+      const diff = Date.now() - parsedTime;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1)  return "Just now";
+      if (mins < 60) return `${mins} min ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs  < 24) return `${hrs} hr ago`;
+      const days = Math.floor(hrs / 24);
+      return `${days} day${days > 1 ? "s" : ""} ago`;
+  }
+
+  document.getElementById("notifBtn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.getElementById("notifDropdown").classList.toggle("show");
+      document.getElementById("notifBadge").classList.add("hidden");
+      profileDropdown.classList.remove("show");
+  });
+
+
+  /* ============================================================
+     UTILS
+  ============================================================ */
+  function showMessage(id, msg, type) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className   = `message ${type} show`;
+  }
+
+
+  /* ============================================================
+     [L12] PAGE BOOTSTRAP
+  ============================================================ */
+  window.addEventListener("DOMContentLoaded", () => {
+      validateUserAccess();
+      loadDashboard();
+      loadNotifications();
+  });
+
+</script>
+</body>
+</html>

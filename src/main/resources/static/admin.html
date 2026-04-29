@@ -1,0 +1,1950 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Virtual Banking System</title>
+    <script src="theme.js"></script>
+    <style>
+
+        /* ================= LIGHT MODE (GREY / SLATE) ================= */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e5e7eb 45%, #f8fafc 100%);
+            --card-bg: #ffffff;
+            --muted-bg: #f1f5f9;
+            --border-soft: #cbd5e1;
+            --header-gradient: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            --header-subtitle: rgba(255, 255, 255, 0.9);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border-color: #d1d5db;
+            --btn-primary: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            --btn-secondary-bg: #e5e7eb;
+            --btn-secondary-text: #0f172a;
+            --feature-bg: #f1f5f9;
+            --btn-glow: rgba(30, 41, 59, 0.35);
+            --table-row-bg: #ffffff;
+            --table-row-hover: #f8fafc;
+            --user-count-bg: #ffffff;
+            --pagination-bg: #ffffff;
+            --pagination-border: #d1d5db;
+            --account-type-savings: rgba(34, 197, 94, 0.15);
+            --account-type-current: rgba(79, 172, 254, 0.15);
+            --account-type-savings-text: #22c55e;
+            --account-type-current-text: #4facfe;
+        }
+
+        /* ================= DARK MODE ================= */
+        body.dark {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+            --card-bg: #0b1220;
+            --muted-bg: #0f172a;
+            --border-soft: #334155;
+            --header-gradient: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+            --header-subtitle: rgba(255, 255, 255, 0.85);
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --border-color: #1f2937;
+            --btn-primary: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+            --btn-secondary-bg: #1f2937;
+            --btn-secondary-text: #e5e7eb;
+            --feature-bg: #0f172a;
+            --btn-glow: rgba(99, 102, 241, 0.55);
+            --table-row-bg: #0d1829;
+            --table-row-hover: #111827;
+            --user-count-bg: #1f2937;
+            --pagination-bg: #1f2937;
+            --pagination-border: #334155;
+            --account-type-savings: rgba(34, 197, 94, 0.25);
+            --account-type-current: rgba(79, 172, 254, 0.25);
+            --account-type-savings-text: #4ade80;
+            --account-type-current-text: #7ec8ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.3s;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* ================= HEADER ================= */
+        .header {
+            background: var(--header-gradient);
+            padding: 30px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header-left p {
+            font-size: 14px;
+            color: var(--header-subtitle);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-header {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-header:hover {
+            background: white;
+            color: #334155;
+        }
+
+        .admin-notif-wrap {
+            position: relative;
+            display: inline-flex;
+        }
+
+        .admin-notif-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 999px;
+            min-width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            padding: 0 4px;
+            pointer-events: none;
+        }
+
+        .admin-notif-badge.hidden {
+            display: none;
+        }
+
+        /* ================= WELCOME SECTION ================= */
+        .welcome-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--muted-bg);
+            border-radius: 12px;
+
+        }
+
+        .welcome-section h2 {
+            color: var(--text-primary);
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .welcome-section p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .admin-name {
+            color: #4f46e5;
+            font-weight: 700;
+        }
+
+        /* ================= STAT CARDS ================= */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--header-gradient);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+
+        .stat-card p {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        /* ================= SEARCH / FILTER ================= */
+        .search-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-box {
+            display: flex;
+            gap: 10px;
+            min-width: 250px;
+        }
+
+        .filter-box select {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid var(--border-soft);
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            transition: border-color 0.3s;
+        }
+
+        .filter-box select:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid var(--border-soft);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            transition: border-color 0.3s;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .search-btn {
+            padding: 12px 25px;
+            background: var(--btn-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--btn-glow);
+        }
+
+        /* ================= CUSTOMERS TABLE SECTION ================= */
+        .customers-section {
+            background: var(--muted-bg);
+            padding: 30px;
+            border-radius: 12px;
+        }
+
+        .customers-section h3 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .customer-count {
+            background: var(--user-count-bg);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #4f46e5;
+            font-weight: 600;
+            border: 1px solid var(--border-soft);
+        }
+
+        .customers-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .customers-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .customers-table thead {
+            background: var(--card-bg);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .customers-table th {
+            padding: 15px;
+            text-align: left;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .customers-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            background: var(--table-row-bg);
+            transition: all 0.3s;
+        }
+
+        .customers-table tbody tr:hover {
+            background: var(--table-row-hover);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .customers-table td {
+            padding: 15px;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .customer-id {
+            font-weight: 600;
+            color: #4f46e5;
+        }
+
+        .customer-name {
+            font-weight: 500;
+        }
+
+        .customer-email {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .customer-balance {
+            font-weight: 600;
+            color: #22c55e;
+        }
+
+        .account-type {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .account-type.savings {
+            background: var(--account-type-savings);
+            color: var(--account-type-savings-text);
+        }
+
+        .account-type.current {
+            background: var(--account-type-current);
+            color: var(--account-type-current-text);
+        }
+
+        /* ================= ACTION BUTTONS ================= */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-view {
+            background: rgba(79, 172, 254, 0.15);
+            color: #4facfe;
+        }
+
+        .btn-view:hover {
+            background: #4facfe;
+            color: white;
+        }
+
+        .btn-delete {
+            background: rgba(245, 87, 108, 0.15);
+            color: #f5576c;
+        }
+
+        .btn-delete:hover {
+            background: #f5576c;
+            color: white;
+        }
+
+        .btn-freeze {
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+        }
+
+        .btn-freeze:hover {
+            background: #d97706;
+            color: white;
+        }
+
+        .btn-unfreeze {
+            background: rgba(34, 197, 94, 0.15);
+            color: #16a34a;
+        }
+
+        .btn-unfreeze:hover {
+            background: #16a34a;
+            color: white;
+        }
+
+        /* ================= ADD CUSTOMER BUTTON ================= */
+        .btn-add-customer {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #2d6a4f, #1e5740);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-add-customer:hover {
+            background: #265e45;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ================= EMPTY STATE ================= */
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+        }
+
+        /* ================= MESSAGES ================= */
+        .message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        body.dark .message.success {
+            background: rgba(34, 197, 94, 0.15);
+            color: #bbf7d0;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+
+        body.dark .message.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fecaca;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+        }
+
+        /* ================= PAGINATION ================= */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid var(--pagination-border);
+            background: var(--pagination-bg);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .pagination button.active {
+            background: var(--btn-primary);
+            color: white;
+            border-color: transparent;
+        }
+
+        .pagination button:hover:not(.active) {
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ================= MODAL ================= */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.55);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 14px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        #addUserModal .modal-content {
+            width: min(92%, 760px);
+            max-width: 760px;
+            max-height: 88vh;
+            overflow-y: auto;
+            border-radius: 20px;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .customer-details {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .detail-value {
+            color: var(--text-secondary);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-modal {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-close-modal {
+            background: var(--btn-secondary-bg);
+            color: var(--btn-secondary-text);
+        }
+
+        .btn-close-modal:hover {
+            opacity: 0.85;
+        }
+
+        .notif-modal-content {
+            max-width: 620px;
+            width: 92%;
+            max-height: 82vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .notif-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notif-modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .notif-close-btn {
+            border: none;
+            background: var(--btn-secondary-bg);
+            color: var(--btn-secondary-text);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .notif-close-btn:hover {
+            opacity: 0.85;
+        }
+
+        .notif-modal-body {
+            padding: 18px 24px 22px;
+            overflow-y: auto;
+            max-height: calc(82vh - 78px);
+        }
+
+        .admin-notif-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-notif-item {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--muted-bg);
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .admin-notif-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .admin-notif-content {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .admin-notif-title {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .admin-notif-desc {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .admin-notif-time {
+            color: var(--text-secondary);
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .admin-notif-empty {
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            color: var(--text-secondary);
+            text-align: center;
+            background: var(--muted-bg);
+        }
+
+        .responsive-table-wrapper {
+            overflow-x: auto;
+        }
+
+        /* ================= ADD CUSTOMER FORM (SIGNUP STYLE) ================= */
+        #addUserForm {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        #addUserForm .section {
+            margin-bottom: 14px;
+        }
+
+        #addUserForm .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        body.dark #addUserForm .section-title {
+            color: #c7d2fe;
+        }
+
+        #addUserForm .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 20px;
+        }
+
+        #addUserForm .form-group {
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        #addUserForm .form-group.full {
+            grid-column: span 2;
+        }
+
+        #addUserForm .form-group.center {
+            align-items: center;
+        }
+
+        #addUserForm .form-group label {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        #addUserForm input,
+        #addUserForm select {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        #addUserForm input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        #addUserForm input:focus,
+        #addUserForm select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        #adminAccountTypeGroup select {
+            width: 240px;
+            text-align-last: center;
+        }
+
+        #addUserForm .modal-buttons-full {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 6px;
+        }
+
+        #addUserForm .btn-submit {
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--btn-primary);
+            color: #fff;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.3s;
+        }
+
+        #addUserForm .btn-submit:hover {
+            box-shadow: 0 10px 28px var(--btn-glow);
+            transform: translateY(-2px);
+        }
+
+        #addUserForm .btn-cancel {
+            padding: 14px 20px;
+            border-radius: 14px;
+            border: 2px solid var(--border-color);
+            background: var(--btn-secondary-bg);
+            color: var(--btn-secondary-text);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        #addUserForm .btn-cancel:hover {
+            opacity: 0.9;
+        }
+
+        /* ================= CONFIRM DIALOG ================= */
+        .confirm-dialog {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-dialog.show {
+            display: flex;
+        }
+
+        .confirm-content {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 14px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+            text-align: center;
+        }
+
+        .confirm-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .confirm-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .confirm-text {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-confirm {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex: 1;
+        }
+
+        .btn-confirm-yes {
+            background: #f5576c;
+            color: white;
+        }
+
+        .btn-confirm-yes:hover {
+            background: #e63946;
+            transform: translateY(-2px);
+        }
+
+        .btn-confirm-no {
+            background: var(--btn-secondary-bg);
+            color: var(--btn-secondary-text);
+        }
+
+        .btn-confirm-no:hover {
+            opacity: 0.85;
+        }
+
+        /* ================= RESPONSIVE ================= */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .welcome-section {
+                text-align: center;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .customers-table {
+                font-size: 12px;
+            }
+
+            .customers-table th,
+            .customers-table td {
+                padding: 10px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            #addUserForm .form-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            #addUserForm .form-group.full {
+                grid-column: span 1;
+            }
+
+            #adminAccountTypeGroup select {
+                width: 100%;
+            }
+
+            #addUserForm .modal-buttons-full {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <h1>VBS Admin</h1>
+            <p>Virtual Banking System - Administration Panel</p>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle theme"></button>
+            <div class="admin-notif-wrap">
+                <button class="btn-header" id="notifBtn">🔔</button>
+                <span class="admin-notif-badge hidden" id="adminNotifBadge">0</span>
+            </div>
+            <button class="btn-header" id="historyBtn">History</button>
+            <button class="btn-header" id="logoutBtn">Logout</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <div id="adminMessage" class="message"></div>
+
+        <!-- Welcome Section with Admin Name -->
+        <div class="welcome-section" id="welcomeSection">
+            <h2>Welcome back, <span class="admin-name" id="adminName">Admin</span>!</h2>
+            <p>Manage your bank customers and monitor their accounts</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p>Total Customers</p>
+                <div class="stat-value" id="totalUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <p>Total Balance</p>
+                <div class="stat-value"><span id="totalBalance">0</span></div>
+            </div>
+            <div class="stat-card">
+                <p>Average Balance</p>
+                <div class="stat-value"><span id="avgBalance">0</span></div>
+            </div>
+            <div class="stat-card">
+                <p>Active Accounts</p>
+                <div class="stat-value" id="activeUsers">0</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by username...">
+                <button class="search-btn" id="searchBtn">Search</button>
+            </div>
+            <div class="filter-box">
+                <select id="sortBy">
+                    <option value="id">Sort by ID</option>
+                    <option value="name">Sort by Name</option>
+                    <option value="username">Sort by Username</option>
+                    <option value="balance">Sort by Balance</option>
+                </select>
+                <select id="sortOrder">
+                    <option value="asc">Ascending </option>
+                    <option value="desc">Descending </option>
+                </select>
+                <select id="accountStatusFilter">
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="pending">Pending</option>
+                    <option value="delete requested">Delete Requested</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                <select id="accountTypeFilter">
+                    <option value="all">All Account Types</option>
+                    <option value="savings">Savings</option>
+                    <option value="current">Current</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="customers-section">
+            <h3>
+                All Customers
+                <div class="customers-header-actions">
+                    <span class="customer-count">Total: <span id="displayCount">0</span></span>
+                    <button type="button" class="btn-add-customer" id="addUserBtn">Add Customer</button>
+                </div>
+            </h3>
+            <div class="responsive-table-wrapper">
+                <table class="customers-table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Account Type</th>
+                        <th>Balance</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-state-icon"></div>
+                            <div class="empty-state-text">Loading customers...</div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="paginationControls" class="pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Notifications Modal -->
+<div id="adminNotifModal" class="modal">
+    <div class="modal-content notif-modal-content">
+        <div class="notif-modal-header">
+            <div class="notif-modal-title">All Notifications</div>
+            <button id="closeNotifBtn" class="notif-close-btn" aria-label="Close notifications"><span>&times;</span></button>
+        </div>
+        <div class="notif-modal-body">
+            <div id="adminNotifList" class="admin-notif-list">
+                <div class="admin-notif-empty">No notifications found.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Customer Modal -->
+<div id="viewUserModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">Customer Details</div>
+        <div class="customer-details" id="userDetailsContent">
+            <!-- Customer details will be populated here -->
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-modal btn-close-modal" id="closeViewBtn">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div id="addUserModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">Add New Customer</div>
+        <form id="addUserForm">
+            <section class="section">
+                <div class="section-title">User Details</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="addName">Full Name *</label>
+                        <input type="text" id="addName" name="name" required placeholder="Enter full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="addEmail">Email *</label>
+                        <input type="email" id="addEmail" name="email" required placeholder="Enter email address">
+                    </div>
+                    <div class="form-group">
+                        <label for="addUsername">Username *</label>
+                        <input type="text" id="addUsername" name="username" required placeholder="Enter username">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPassword">Password *</label>
+                        <input type="password" id="addPassword" name="password" required placeholder="Enter password">
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="section-title">Security</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="addSecQuestion">Security Question *</label>
+                        <input type="text" id="addSecQuestion" name="secQuestion" required placeholder="e.g. What is the name of your first pet?">
+                    </div>
+                    <div class="form-group">
+                        <label for="addSecAnswer">Security Answer *</label>
+                        <input type="text" id="addSecAnswer" name="secAnswer" required placeholder="Enter security answer">
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="section-title">Account</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="addBalance">Initial Balance *</label>
+                        <input type="number" id="addBalance" name="balance" required placeholder="Enter initial balance" min="0" step="0.01">
+                    </div>
+                    <div class="form-group center" id="adminAccountTypeGroup">
+                        <label for="accountType">Account Type *</label>
+                        <select id="accountType" name="accountType" required>
+                            <option value="">Select Account Type</option>
+                            <option value="savings">Savings</option>
+                            <option value="current">Current</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+            <div class="modal-buttons-full">
+                <button type="button" class="btn-cancel" id="cancelAddBtn">Cancel</button>
+                <button type="submit" class="btn-submit">Add Customer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<div id="deleteConfirmDialog" class="confirm-dialog">
+    <div class="confirm-content">
+        <div class="confirm-icon"></div>
+        <div class="confirm-title">Delete Customer?</div>
+        <div class="confirm-text" id="deleteConfirmText">
+            Are you sure you want to delete this customer? This action cannot be undone.
+        </div>
+        <div class="confirm-buttons">
+            <button class="btn-confirm btn-confirm-no" id="cancelDeleteBtn">Cancel</button>
+            <button class="btn-confirm btn-confirm-yes" id="confirmDeleteBtn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ================= LOGIC ================= */
+    const API_URL = 'http://localhost:8082';
+    let userId = null;
+    let adminName = '';
+    let allUsers = [];
+    let filteredUsers = [];
+    const itemsPerPage = 10;
+    let currentPage = 1;
+    let currentSortBy = 'id';
+    let currentSortOrder = 'asc';
+    let currentStatusFilter = 'all';
+    let currentAccountTypeFilter = 'all';
+    let userToDeleteId = null;
+    const NOTIFICATIONS_ENDPOINT = (id) => `${API_URL}/admin/notification/${id}`;
+    const FREEZE_USER_ENDPOINT = (customerId, adminId) => `${API_URL}/freeze-user/${customerId}/admin/${adminId}`;
+    const UNFREEZE_USER_ENDPOINT = (customerId, adminId) => `${API_URL}/unfreeze-user/${customerId}/admin/${adminId}`;
+
+    function normalizeValue(value) {
+      return (value ?? '').toString().trim().toLowerCase();
+    }
+
+    function toSafeNumber(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function getUserAccountType(user) {
+      return normalizeValue(user?.accountType ?? user?.accounttype ?? user?.type);
+    }
+
+    function getUserAccountStatus(user) {
+      return normalizeValue(user?.accountStatus ?? user?.accountstatus ?? user?.status);
+    }
+
+    function formatLabel(value, fallback = 'N/A') {
+      const clean = (value ?? '').toString().trim();
+      if (!clean) return fallback;
+      return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+    }
+
+    function applyFrontendFilters(resetPage = false) {
+      const searchTerm = normalizeValue(document.getElementById('searchInput')?.value);
+      currentStatusFilter = normalizeValue(document.getElementById('accountStatusFilter')?.value || 'all');
+      currentAccountTypeFilter = normalizeValue(document.getElementById('accountTypeFilter')?.value || 'all');
+
+      filteredUsers = allUsers.filter((user) => {
+        const username = normalizeValue(user?.username);
+        const role = normalizeValue(user?.role);
+        const status = getUserAccountStatus(user);
+        const accountType = getUserAccountType(user);
+
+        const customerOnly = !role || role === 'customer';
+        const searchMatch = !searchTerm || username.includes(searchTerm);
+        const statusMatch = currentStatusFilter === 'all' || status === currentStatusFilter;
+        const typeMatch = currentAccountTypeFilter === 'all' || accountType === currentAccountTypeFilter;
+
+        return customerOnly && searchMatch && statusMatch && typeMatch;
+      });
+
+      if (resetPage) currentPage = 1;
+      displayUsers(filteredUsers);
+    }
+
+    // Get user ID and role from URL parameter; restrict access to admin only
+    function getUserIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      const urlUserId = params.get('id');
+      const urlRole = params.get('role');
+      const storedUserId = localStorage.getItem("userId");
+      const storedRole = localStorage.getItem("role");
+
+      userId = storedUserId || urlUserId;
+      const role = (storedRole || urlRole || '').toLowerCase();
+
+      if (!userId) {
+        window.location.href = '/loginf.html';
+        return;
+      }
+
+      if (role !== 'admin') {
+        alert("Unauthorized access");
+        window.location.href = '/loginf.html';
+      }
+
+      // Fetch admin name
+      fetchAdminName();
+    }
+
+    // Fetch admin name
+    async function fetchAdminName() {
+      try {
+        const response = await fetch(`${API_URL}/admin/get-details/${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          adminName = data.username || data.name || 'Admin';
+          document.getElementById('adminName').textContent = adminName;
+        }
+      } catch (error) {
+        console.error('Error fetching admin name:', error);
+      }
+    }
+
+    // Load all users with sorting
+    async function loadAllUsers(sortBy = 'id', order = 'asc') {
+      try {
+        const response = await fetch(`${API_URL}/users?sortBy=${sortBy}&order=${order}`);
+        if (!response.ok) throw new Error('Failed to load users');
+
+        const users = await response.json();
+        allUsers = Array.isArray(users) ? users : [];
+        currentSortBy = sortBy;
+        currentSortOrder = order;
+
+        document.getElementById('sortBy').value = sortBy;
+        document.getElementById('sortOrder').value = order;
+
+        updateStatistics();
+        applyFrontendFilters(true);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        showMessage('adminMessage', 'Failed to load users. Make sure backend is running.', 'error');
+        displayErrorState();
+      }
+    }
+
+    // Update statistics
+    function updateStatistics() {
+      const totalUsers = allUsers.length;
+      const totalBalance = allUsers.reduce((sum, user) => sum + toSafeNumber(user.balance), 0);
+      const avgBalance = totalUsers > 0 ? totalBalance / totalUsers : 0;
+      const activeUsers = allUsers.filter(u => {
+        const status = getUserAccountStatus(u);
+        if (status) return status === 'active';
+        return toSafeNumber(u.balance) > 0;
+      }).length;
+
+      document.getElementById('totalUsers').textContent = totalUsers;
+      document.getElementById('totalBalance').textContent = totalBalance.toFixed(2);
+      document.getElementById('avgBalance').textContent = avgBalance.toFixed(2);
+      document.getElementById('activeUsers').textContent = activeUsers;
+    }
+
+    // Apply sorting from dropdowns
+    function applySort() {
+      const sortBy = document.getElementById('sortBy').value;
+      const order = document.getElementById('sortOrder').value;
+      currentPage = 1;
+      loadAllUsers(sortBy, order);
+    }
+
+    // Search users (frontend filter over loaded userdata list)
+    function searchUsers() {
+      applyFrontendFilters(true);
+    }
+
+    // Display users with pagination
+    function displayUsers(users) {
+      const tableBody = document.getElementById('usersTableBody');
+      const paginationContainer = document.getElementById('paginationControls');
+      const displayCount = document.getElementById('displayCount');
+
+      if (users.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty-state">
+              <div class="empty-state-icon"></div>
+              <div class="empty-state-text">No customers found</div>
+            </td>
+          </tr>
+        `;
+        paginationContainer.innerHTML = '';
+        displayCount.textContent = '0';
+        return;
+      }
+
+      displayCount.textContent = users.length;
+
+      const totalPages = Math.ceil(users.length / itemsPerPage);
+      const startIdx = (currentPage - 1) * itemsPerPage;
+      const endIdx = startIdx + itemsPerPage;
+      const pageUsers = users.slice(startIdx, endIdx);
+
+      tableBody.innerHTML = pageUsers.map(user => {
+        const accountType = getUserAccountType(user);
+        const status = getUserAccountStatus(user);
+        const accountTypeClass = (accountType === 'savings' || accountType === 'current') ? accountType : 'current';
+        const accountTypeLabel = formatLabel(accountType, 'Unknown');
+        const safeName = String(user.name ?? 'User').replace(/'/g, "\\'");
+        const balance = toSafeNumber(user.balance);
+        const isDeleteRequested = status === 'delete requested';
+        const isInactive = status === 'inactive';
+        const actionButton = isDeleteRequested
+          ? `<button class="btn-action btn-delete" onclick="confirmDeleteUser(${user.id}, '${safeName}')">Delete</button>`
+          : (isInactive
+              ? `<button class="btn-action btn-unfreeze" onclick="changeFreezeState(${user.id}, false, '${safeName}')">Unfreeze</button>`
+              : `<button class="btn-action btn-freeze" onclick="changeFreezeState(${user.id}, true, '${safeName}')">Freeze</button>`);
+
+        return `
+          <tr>
+            <td><span class="customer-id">#${user.id}</span></td>
+            <td><span class="customer-name">${user.name}</span></td>
+            <td>${user.username}</td>
+            <td><span class="customer-email">${user.email}</span></td>
+            <td>
+              <span class="account-type ${accountTypeClass}">
+                ${accountTypeLabel}
+              </span>
+            </td>
+            <td><span class="customer-balance">${balance.toFixed(2)}</span></td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action btn-view" onclick="viewUser(${user.id})"> View</button>
+                ${actionButton}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      if (totalPages > 1) {
+        let paginationHTML = '';
+
+        if (currentPage > 1) {
+          paginationHTML += `<button onclick="goToPage(${currentPage - 1})">Previous</button>`;
+        }
+
+        for (let i = 1; i <= totalPages; i++) {
+          if (i === currentPage) {
+            paginationHTML += `<button class="active">${i}</button>`;
+          } else if (i <= 3 || i >= totalPages - 2 || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            paginationHTML += `<button onclick="goToPage(${i})">${i}</button>`;
+          } else if (i === 4 || i === totalPages - 3) {
+            paginationHTML += `<button disabled>...</button>`;
+          }
+        }
+
+        if (currentPage < totalPages) {
+          paginationHTML += `<button onclick="goToPage(${currentPage + 1})">Next </button>`;
+        }
+
+        paginationContainer.innerHTML = paginationHTML;
+      } else {
+        paginationContainer.innerHTML = '';
+      }
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      displayUsers(filteredUsers);
+    }
+
+    function viewUser(userId) {
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+
+      const accountType = formatLabel(getUserAccountType(user), 'Unknown');
+      const accountStatus = formatLabel(getUserAccountStatus(user), 'Unknown');
+      const balance = toSafeNumber(user.balance);
+
+      const detailsContent = document.getElementById('userDetailsContent');
+      detailsContent.innerHTML = `
+        <div class="detail-row">
+          <span class="detail-label">ID</span>
+          <span class="detail-value">#${user.id}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Name</span>
+          <span class="detail-value">${user.name}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Username</span>
+          <span class="detail-value">${user.username}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">${user.email}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Account Type</span>
+          <span class="detail-value">${accountType}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Account Status</span>
+          <span class="detail-value">${accountStatus}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Current Balance</span>
+          <span class="detail-value">${balance.toFixed(2)}</span>
+        </div>
+      `;
+
+      document.getElementById('viewUserModal').classList.add('show');
+    }
+
+    function closeViewUserModal() {
+      document.getElementById('viewUserModal').classList.remove('show');
+    }
+
+    function displayErrorState() {
+      const tableBody = document.getElementById('usersTableBody');
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state">
+            <div class="empty-state-icon"></div>
+            <div class="empty-state-text">Failed to load customers</div>
+          </td>
+        </tr>
+      `;
+    }
+
+    function showMessage(elementId, message, type) {
+      const messageEl = document.getElementById(elementId);
+      messageEl.textContent = message;
+      messageEl.className = `message ${type} show`;
+      setTimeout(() => {
+        messageEl.classList.remove('show');
+      }, 3000);
+    }
+
+    function logout() {
+      if (window.VBSSession && typeof window.VBSSession.endSession === 'function') {
+        window.VBSSession.endSession();
+      } else {
+        localStorage.removeItem('userId');
+        localStorage.removeItem('role');
+      }
+      window.location.href = '/homef.html';
+    }
+
+    function goToHistory() {
+      const params = new URLSearchParams();
+      if (userId) params.set('id', userId);
+      params.set('role', 'admin');
+      window.location.href = `/adminhistory.html?${params.toString()}`;
+    }
+
+    function openAddUserModal() {
+      document.getElementById('addUserModal').classList.add('show');
+      document.getElementById('addUserForm').reset();
+    }
+
+    function closeAddUserModal() {
+      document.getElementById('addUserModal').classList.remove('show');
+      document.getElementById('addUserForm').reset();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatNotifTime(ts) {
+      if (!ts) return '';
+      const diff = Date.now() - new Date(ts).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return `${mins} min ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs} hr ago`;
+      const days = Math.floor(hrs / 24);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+
+    function setAdminNotifBadge(count) {
+      const badge = document.getElementById('adminNotifBadge');
+      if (!badge) return;
+      const safeCount = Number.isFinite(Number(count)) ? Number(count) : 0;
+      if (safeCount > 0) {
+        badge.textContent = safeCount > 99 ? '99+' : String(safeCount);
+        badge.classList.remove('hidden');
+      } else {
+        badge.textContent = '0';
+        badge.classList.add('hidden');
+      }
+    }
+
+    async function loadAdminNotifBadge() {
+      if (!userId) {
+        setAdminNotifBadge(0);
+        return;
+      }
+      try {
+        const response = await fetch(NOTIFICATIONS_ENDPOINT(userId));
+        if (!response.ok) throw new Error('Failed to load notifications');
+        const data = await response.json();
+        const count = Array.isArray(data) ? data.length : 0;
+        setAdminNotifBadge(count);
+      } catch (error) {
+        setAdminNotifBadge(0);
+      }
+    }
+
+    function renderNotifications(notifications) {
+      const listEl = document.getElementById('adminNotifList');
+      const rows = Array.isArray(notifications) ? notifications : [];
+
+      if (!rows.length) {
+        listEl.innerHTML = `<div class="admin-notif-empty">No notifications found.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = rows.map((n) => {
+        const icon = escapeHtml(n.icon || '');
+        const title = escapeHtml(n.title || 'Notification');
+        const desc = escapeHtml(n.description || n.message || 'No details available');
+        const time = escapeHtml(formatNotifTime(n.createdAt || n.date || n.timestamp));
+
+        return `
+          <div class="admin-notif-item">
+            <div class="admin-notif-icon">🔔</div>
+            <div class="admin-notif-content">
+              <div class="admin-notif-title">${title}</div>
+              <div class="admin-notif-desc">${desc}</div>
+              <div class="admin-notif-time">${time}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function openNotificationsModal() {
+      const modal = document.getElementById('adminNotifModal');
+      const listEl = document.getElementById('adminNotifList');
+      modal.classList.add('show');
+      setAdminNotifBadge(0);
+      listEl.innerHTML = `<div class="admin-notif-empty">Loading notifications...</div>`;
+
+      try {
+        const response = await fetch(NOTIFICATIONS_ENDPOINT(userId));
+        if (!response.ok) throw new Error('Failed to load notifications');
+
+        const data = await response.json();
+        renderNotifications(data);
+      } catch (error) {
+        listEl.innerHTML = `<div class="admin-notif-empty">Unable to load notifications.</div>`;
+      }
+    }
+
+    function closeNotificationsModal() {
+      document.getElementById('adminNotifModal').classList.remove('show');
+    }
+
+    async function handleAddUser(event) {
+      event.preventDefault();
+
+      const balanceNumber = document.getElementById('addBalance').valueAsNumber;
+      const formData = {
+        role: 'customer',
+        name: document.getElementById('addName').value.trim(),
+        username: document.getElementById('addUsername').value.trim(),
+        email: document.getElementById('addEmail').value.trim(),
+        password: document.getElementById('addPassword').value.trim(),
+        accountType: document.getElementById('accountType').value,
+        secQuestion: document.getElementById('addSecQuestion').value.trim(),
+        secAnswer: document.getElementById('addSecAnswer').value.trim().toLowerCase(),
+        balance: balanceNumber
+      };
+
+      if (!formData.name || !formData.username || !formData.email || !formData.password || !formData.accountType || !formData.secQuestion || !formData.secAnswer) {
+        alert('Please fill all required fields');
+        return;
+      }
+
+      if (formData.password.length < 6) {
+        alert('Password must be at least 6 characters long');
+        return;
+      }
+
+      if (!Number.isFinite(balanceNumber)) {
+        alert('Please enter a valid balance');
+        return;
+      }
+
+      if (balanceNumber < 0) {
+        alert('Balance cannot be negative');
+        return;
+      }
+
+      try {
+        if (!userId) {
+          alert('Admin id missing. Please login as admin.');
+          return;
+        }
+
+        console.log('Sending customer data:', formData);
+        const response = await fetch(`${API_URL}/add/${userId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(errorData || 'Failed to add customer');
+        }
+
+        alert('Customer added successfully!');
+        closeAddUserModal();
+        loadAllUsers(currentSortBy, currentSortOrder);
+      } catch (error) {
+        console.error('Error adding customer:', error);
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    function confirmDeleteUser(id, name) {
+      userToDeleteId = id;
+      document.getElementById('deleteConfirmText').textContent =
+        `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+      document.getElementById('deleteConfirmDialog').classList.add('show');
+    }
+
+    function closeDeleteConfirm() {
+      document.getElementById('deleteConfirmDialog').classList.remove('show');
+      userToDeleteId = null;
+    }
+
+    async function changeFreezeState(customerId, shouldFreeze, customerName) {
+      try {
+        const endpoint = shouldFreeze
+          ? FREEZE_USER_ENDPOINT(customerId, userId)
+          : UNFREEZE_USER_ENDPOINT(customerId, userId);
+
+        const response = await fetch(endpoint, { method: 'PUT' });
+        const message = await response.text();
+
+        if (!response.ok) {
+          throw new Error(message || `Failed to ${shouldFreeze ? 'freeze' : 'unfreeze'} customer`);
+        }
+
+        showMessage(
+          'adminMessage',
+          message || `${customerName} ${shouldFreeze ? 'frozen' : 'unfrozen'} successfully`,
+          'success'
+        );
+        loadAllUsers(currentSortBy, currentSortOrder);
+      } catch (error) {
+        console.error('Error changing freeze state:', error);
+        showMessage('adminMessage', `Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function deleteUser() {
+      if (!userToDeleteId) return;
+
+      try {
+        const response = await fetch(`${API_URL}/delete-user/${userToDeleteId}/admin/${userId}`, {
+          method: 'DELETE'
+        });
+
+        const message = await response.text();
+
+        if (!response.ok) {
+          throw new Error(message || 'Failed to delete customer');
+        }
+
+        if (message.includes('Please empty account to delete') || message.includes('not found')) {
+          showMessage('adminMessage', message, 'error');
+          closeDeleteConfirm();
+          return;
+        }
+
+        showMessage('adminMessage', message || 'Customer deleted successfully!', 'success');
+        closeDeleteConfirm();
+        loadAllUsers(currentSortBy, currentSortOrder);
+      } catch (error) {
+        console.error('Error deleting customer:', error);
+        showMessage('adminMessage', `Error: ${error.message}`, 'error');
+        closeDeleteConfirm();
+      }
+    }
+
+    // Initialize event listeners
+    function initEventListeners() {
+
+      // History button
+      document.getElementById('historyBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        goToHistory();
+      });
+
+      // Notifications button
+      document.getElementById('notifBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        openNotificationsModal();
+      });
+
+      // Close notifications modal
+      document.getElementById('closeNotifBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        closeNotificationsModal();
+      });
+
+      // Logout button
+      document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        logout();
+      });
+
+      // Search button
+      document.getElementById('searchBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        searchUsers();
+      });
+
+      // Sort dropdowns
+      document.getElementById('sortBy')?.addEventListener('change', applySort);
+      document.getElementById('sortOrder')?.addEventListener('change', applySort);
+      document.getElementById('accountStatusFilter')?.addEventListener('change', () => applyFrontendFilters(true));
+      document.getElementById('accountTypeFilter')?.addEventListener('change', () => applyFrontendFilters(true));
+
+      // Add customer button
+      document.getElementById('addUserBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        openAddUserModal();
+      });
+
+      // Cancel add button
+      document.getElementById('cancelAddBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        closeAddUserModal();
+      });
+
+      // Close view button
+      document.getElementById('closeViewBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        closeViewUserModal();
+      });
+
+      // Cancel delete button
+      document.getElementById('cancelDeleteBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        closeDeleteConfirm();
+      });
+
+      // Confirm delete button
+      document.getElementById('confirmDeleteBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        deleteUser();
+      });
+
+      // Add user form submit
+      document.getElementById('addUserForm')?.addEventListener('submit', handleAddUser);
+
+      // Search input enter key
+      document.getElementById('searchInput')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          searchUsers();
+        }
+      });
+
+      // Close modals when clicking outside
+      window.addEventListener('click', (e) => {
+        const notifModal = document.getElementById('adminNotifModal');
+        const viewModal = document.getElementById('viewUserModal');
+        const addModal = document.getElementById('addUserModal');
+        const deleteDialog = document.getElementById('deleteConfirmDialog');
+
+        if (e.target === notifModal) {
+          notifModal.classList.remove('show');
+        }
+        if (e.target === viewModal) {
+          viewModal.classList.remove('show');
+        }
+        if (e.target === addModal) {
+          addModal.classList.remove('show');
+        }
+        if (e.target === deleteDialog) {
+          deleteDialog.classList.remove('show');
+        }
+      });
+    }
+
+
+    window.addEventListener('DOMContentLoaded', () => {
+      getUserIdFromURL();
+      loadAllUsers();
+      loadAdminNotifBadge();
+      initEventListeners();
+    });
+</script>
+</body>
+</html>
+

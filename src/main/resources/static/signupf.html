@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+HOOK INDEX (SIGNUP FLOW)
+
+[INIT] ROLE_AND_THEME_SETUP
+[H1] FORM_VALIDATION
+[S4] SignUP Entry Check
+[H2] CAPTCHA_VERIFICATION
+[H3] POST_CAPTCHA_PIPELINE
+     ├─ [S3] EMAIL_EXISTS_REDIRECT
+     └─ [S1] SIGNUP_SUBMIT
+[UTIL] CAPTCHA_UI_STATE
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VBS - Sign Up</title>
+    <script src="theme.js"></script>
+<style>
+
+    /* ================= THEME TOGGLE ================= */
+.theme-toggle {
+  position:absolute;
+  top:16px;
+  right:16px;
+  background:rgba(255,255,255,.18);
+  border:none;
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:18px;
+  cursor:pointer;
+  color:#fff;
+  transition:background .2s ease;
+}
+
+.theme-toggle:hover {
+  background:rgba(255,255,255,.28);
+}
+
+body.dark .theme-toggle {
+  background:rgba(0,0,0,.35);
+}
+
+    /* ================= THEME ================= */
+/* ================= LIGHT MODE (GREY / SLATE) ================= */
+:root {
+    --verify-green: #22c55e;
+    --bg-gradient: linear-gradient(
+        135deg,
+        #f1f5f9 0%,
+        #e5e7eb 45%,
+        #f8fafc 100%
+    );
+
+    --card-bg: #ffffff;
+
+    --header-gradient: linear-gradient(
+        135deg,
+        #334155 0%,
+        #1e293b 100%
+    );
+
+    --header-subtitle: rgba(255, 255, 255, 0.9);
+
+    --text-primary: #0f172a;   /* slate-900 */
+    --text-secondary: #475569; /* slate-600 */
+
+    --border-color: #d1d5db;
+
+    --btn-primary: linear-gradient(
+        135deg,
+        #334155 0%,
+        #1e293b 100%
+    );
+
+    --btn-secondary-bg: #e5e7eb;
+    --btn-secondary-text: #0f172a;
+
+    --feature-bg: #f1f5f9;
+
+    --btn-glow: rgba(30, 41, 59, 0.35);
+}
+
+
+ /* ================= DARK MODE (DEFAULT) ================= */
+body.dark {
+    --verify-green: #22c55e;
+    --bg-gradient: linear-gradient(
+        135deg,
+        #0f172a 0%,
+        #020617 100%
+    );
+
+    --card-bg: #0b1220;
+
+    --header-gradient: linear-gradient(
+        135deg,
+        #1e3a8a 0%,
+        #312e81 100%
+    );
+
+    --header-subtitle: rgba(255, 255, 255, 0.85);
+
+    --text-primary: #e5e7eb;
+    --text-secondary: #9ca3af;
+
+    --border-color: #1f2937;
+
+    --btn-primary: linear-gradient(
+        135deg,
+        #2563eb 0%,
+        #4f46e5 100%
+    );
+
+    --btn-secondary-bg: #1f2937;
+    --btn-secondary-text: #e5e7eb;
+
+    --feature-bg: #0f172a;
+
+    --btn-glow: rgba(99, 102, 241, 0.55);
+}
+
+/* ================= RESET ================= */
+* {
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html, body {
+  height:100%;
+}
+
+body {
+  font-family: Segoe UI, Tahoma, sans-serif;
+  background: var(--bg-gradient);
+  display:flex;
+  justify-content:center;
+  align-items:center;      /* 🔥 full-screen centering */
+}
+
+/* ================= LAYOUT ================= */
+.container {
+  width:100%;
+  max-width:760px;     /* ⬅️ reduced */
+  min-height:auto;     /* ⬅️ remove forced height */
+  margin:24px;         /* ⬅️ natural breathing space */
+  background:var(--card-bg);
+  border-radius:24px;
+  box-shadow:0 22px 55px rgba(0,0,0,.25);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+
+.header {
+  background:var(--header-gradient);
+  padding:24px;
+  text-align:center;
+  color:#fff;
+  border-radius:24px 24px 0 0;
+}
+
+.content {
+  padding:28px 36px;
+  flex:1;
+}
+
+/* ================= SECTIONS ================= */
+.section {
+  margin-bottom:18px;
+}
+
+
+.section-title {
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-secondary);
+  margin-bottom:14px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+body.dark .section-title {
+  color:#c7d2fe;   /* readable but not loud */
+}
+
+/* ================= FORM ================= */
+.form-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px 20px;
+}
+
+.form-group {
+  display:flex;
+  flex-direction:column;
+}
+
+.form-group.full {
+  grid-column:span 2;
+}
+.form-group.center {
+  align-items:center;
+}
+#accountTypeGroup select {
+  width:240px;
+  text-align-last:center;
+}
+#accountTypeGroup {
+  margin-top:12px;
+}
+
+
+label {
+  font-size:13px;
+  margin-bottom:6px;
+  color:var(--text-primary);
+}
+
+input, select {
+  padding:12px;
+  border-radius:10px;
+  border:2px solid var(--border-color);
+  background:var(--card-bg);
+  color:var(--text-primary);
+}
+
+input:focus, select:focus {
+  outline:none;
+  border-color:#2563eb;
+}
+
+
+/* ================= BUTTON ================= */
+.btn {
+  margin-top:14px;
+  padding:14px;
+  width:100%;
+  border-radius:14px;
+  border:none;
+  font-size:16px;
+  font-weight:600;
+  background:var(--btn-primary);
+  color:#fff;
+  cursor:pointer;
+}
+
+.btn:hover {
+  box-shadow:0 10px 28px var(--btn-glow);
+  transform:translateY(-2px);
+}
+
+/* ================= LINKS ================= */
+.link-row {
+  display:flex;
+  justify-content:space-between;
+  margin-top:18px;
+  font-size:14px;
+  color:var(--text-secondary);
+}
+
+.link-row a {
+  font-weight:600;
+  color:#2563eb;
+  text-decoration:none;
+}
+
+/* ================= CAPTCHA MODAL ================= */
+.captcha-modal {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+  backdrop-filter: blur(3px);
+}
+
+.captcha-modal.hidden {
+  display:none;
+}
+
+.captcha-card button {
+  margin-top: 18px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 2px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.captcha-card button:hover {
+  background: rgba(0,0,0,.04);
+}
+
+body.dark .captcha-card button:hover {
+  background: rgba(255,255,255,.08);
+}
+
+.captcha-card button {
+  opacity: .85;
+}
+
+.captcha-card button:hover {
+  opacity: 1;
+}
+
+.captcha-card {
+  /* layout */
+  width: 90%;
+  max-width: 380px;
+  padding: 28px;
+  text-align: center;
+
+  /* visuals */
+  background: var(--card-bg);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.06);
+
+  /* 🔑 transparency fix */
+  opacity: 1;
+  isolation: isolate;
+}
+
+
+
+
+.captcha-card h3 {
+  margin-bottom:14px;
+  color:var(--text-primary);
+}
+
+/* Prevent text selection on captcha */
+#holdBox,
+#holdText {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+#holdText {
+  transition: opacity 0.15s ease;
+}
+
+
+/* Hold box */
+#holdBox {
+  position:relative;
+  height:46px;
+  border-radius:14px;
+  border:2px dashed var(--border-color);
+  overflow:hidden;
+  cursor:pointer;
+  margin-top:14px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#holdFill {
+  position:absolute;
+  top:0;
+  left:0;
+  height:100%;
+  width:0%;
+  background:linear-gradient(135deg,var(--verify-green),#15803d);
+}
+
+#holdText {
+  position:relative;
+  z-index:2;
+  line-height:46px;
+  font-weight:600;
+  color:var(--text-secondary);
+}
+
+#holdBox.verified #holdText {
+  color:#fff;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle theme">🌙</button>
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <h1>VBS</h1>
+        <p id="roleTitle">Sign Up</p>
+    </div>
+
+    <div class="content">
+
+        <form id="signupForm">
+
+            <!-- ================= USER DETAILS ================= -->
+            <section class="section">
+                <div class="section-title">User Details</div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input id="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input id="email" type="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input id="username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input id="password" type="password" minlength="6" required>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= SECURITY ================= -->
+            <section class="section">
+                <div class="section-title">Security</div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Security Question</label>
+                        <input
+                                id="secQuestion"
+                                placeholder="e.g. What is the name of your first pet?"
+                                required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label>Security Answer</label>
+                        <input
+                                id="secAnswer"
+                                placeholder="Your answer"
+                                required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group center" id="accountTypeGroup">
+                    <label>Account Type</label>
+                    <select id="accountType">
+                        <option value="">Select Account</option>
+                        <option>SAVINGS</option>
+                        <option>CURRENT</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- ================= ACTION ================= -->
+            <section class="section">
+                <button class="btn" id="submitBtn">
+                    Create Account
+                </button>
+            </section>
+
+        </form>
+
+        <!-- ===== FOOTER LINKS ===== -->
+        <div class="link-row">
+            <a id="homeLink">← Back to Home</a>
+            <span>
+                Already have an account?
+                <a id="loginLink">Login</a>
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- ================= CAPTCHA MODAL ================= -->
+<div id="captchaModal" class="captcha-modal hidden">
+    <div class="captcha-card">
+        <div class="section-title">Verification</div>
+
+        <div id="holdBox">
+            <div id="holdFill"></div>
+            <span id="holdText">Hold to verify</span>
+        </div>
+
+        <button type="button" onclick="closeCaptcha()">Cancel</button>
+    </div>
+</div>
+
+
+
+<script>
+
+    /* =====================================================
+   [INIT] ROLE & THEME
+===================================================== */
+const role = new URLSearchParams(location.search).get("role");
+if (!["admin", "customer"].includes(role)) location.href = "/homef.html";
+
+roleTitle.innerText = role === "admin" ? "Admin Sign Up" : "Customer Sign Up";
+accountTypeGroup.style.display = role === "admin" ? "none" : "flex";
+
+loginLink.onclick = () => location.href = `/loginf.html?role=${role}`;
+homeLink.onclick = () => {
+    localStorage.removeItem("captchaFailCount");
+    localStorage.removeItem("captchaLockedUntil");
+    localStorage.removeItem("captchaReduced");
+    location.href = "/homef.html";
+};
+
+
+
+/* =====================================================
+   CAPTCHA CONFIG & STATE
+===================================================== */
+const HOLD_TIME = 2500;
+const MAX_FAILS = 1;
+const LOCK_MS = 10000;
+
+let verified = false;
+let isHolding = false;
+let progress = 0;
+let timer = null;
+let uiTick = null;
+
+let fails = Number(localStorage.getItem("captchaFailCount")) || 0;
+let lockedUntil = Number(localStorage.getItem("captchaLockedUntil")) || 0;
+let reducedMode = localStorage.getItem("captchaReduced") === "true";
+
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+const captchaModal = document.getElementById("captchaModal");
+const holdBox = document.getElementById("holdBox");
+const holdFill = document.getElementById("holdFill");
+const holdText = document.getElementById("holdText");
+const submitBtn = document.getElementById("submitBtn");
+
+
+/* =====================================================
+   [H1] FORM VALIDATION
+===================================================== */
+function isLocked() {
+    return Date.now() < lockedUntil;
+}
+
+function isFormComplete() {
+    const requiredFields = [
+        "name",
+        "username",
+        "email",
+        "password",
+        "secQuestion",
+        "secAnswer"
+    ];
+
+    for (const id of requiredFields) {
+        const el = document.getElementById(id);
+        if (!el || !el.value.trim()) return false;
+    }
+
+    if (role === "customer") {
+        const accountType = document.getElementById("accountType");
+        if (!accountType.value) return false;
+    }
+
+    return true;
+}
+
+function attemptsLeft() {
+    return reducedMode ? 1 : Math.max(1, MAX_FAILS - fails);
+}
+
+function isAdminEmailValid() {
+    if (role !== "admin") return true;
+
+    const email = document.getElementById("email").value.trim();
+    return email.endsWith("@vbs.com");
+}
+
+function isPasswordLengthValid() {
+    const password = document.getElementById("password").value || "";
+    return password.length >= 6;
+}
+
+
+
+/* =====================================================
+   [UTIL] CAPTCHA UI STATE
+===================================================== */
+function updateText() {
+
+    if (verified) return;
+
+
+
+    if (!isFormComplete()) {
+        holdText.innerText = "Complete the form to verify";
+        return;
+    }
+
+    if (isLocked()) {
+        const sec = Math.ceil((lockedUntil - Date.now()) / 1000);
+        holdText.innerText = `Locked (${sec}s)`;
+    } else {
+        const a = attemptsLeft();
+        holdText.innerText = `Hold to verify (${a} attempt${a > 1 ? "s" : ""})`;
+    }
+
+
+}
+
+function resetVerification() {
+    verified = false;
+    isHolding = false;
+    progress = 0;
+    clearInterval(timer);
+
+    holdFill.style.width = "0%";
+    holdBox.classList.remove("verified");
+    updateText();
+}
+
+
+/* =====================================================
+   [H2] CAPTCHA MODAL
+===================================================== */
+function openCaptcha() {
+    resetVerification();
+    captchaModal.classList.remove("hidden");
+
+    updateText();
+    uiTick = setInterval(updateText, 500);
+}
+
+function closeCaptcha() {
+    captchaModal.classList.add("hidden");
+    clearInterval(uiTick);
+    uiTick = null;
+}
+
+
+/* =====================================================
+   CAPTCHA HOLD LOGIC
+===================================================== */
+function startHold() {
+  if (verified || isLocked() || isHolding || !isFormComplete()) return;
+
+  isHolding = true;
+  progress = 0;
+  holdStartTime = Date.now();
+
+  timer = setInterval(() => {
+    const elapsed = Date.now() - holdStartTime;
+    const remaining = Math.max(0, HOLD_TIME - elapsed);
+
+    // progress bar
+    progress = (elapsed / HOLD_TIME) * 100;
+    holdFill.style.width = `${Math.min(progress, 100)}%`;
+
+    // 👇 THIS IS WHAT YOU WANT
+    holdText.innerText = `Hold to verify (${(remaining / 1000).toFixed(1)}s)`;
+
+    if (elapsed >= HOLD_TIME) {
+      clearInterval(timer);
+      isHolding = false;
+      verified = true;
+
+      holdFill.style.width = "100%";
+      holdBox.classList.add("verified");
+      holdText.innerText = "✔ Verified";
+
+      fails = 0;
+      localStorage.removeItem("captchaFailCount");
+      localStorage.removeItem("captchaLockedUntil");
+
+      setTimeout(() => {
+        closeCaptcha();          // signup modal OR enable submit
+        handlePostCaptchaFlow(); // or enable login
+      }, 300);
+    }
+  }, 50);
+}
+
+
+function cancelHold() {
+    if (!isHolding || verified) return;
+
+    isHolding = false;
+    clearInterval(timer);
+
+    fails++;
+    lockedUntil = Date.now() + LOCK_MS;
+
+    localStorage.setItem("captchaFailCount", fails);
+    localStorage.setItem("captchaLockedUntil", lockedUntil);
+
+    resetVerification();
+}
+
+
+/* ================= EVENTS ================= */
+holdBox.onmousedown = startHold;
+holdBox.onmouseup = cancelHold;
+holdBox.ontouchstart = e => { e.preventDefault(); startHold(); };
+holdBox.ontouchend   = e => { e.preventDefault(); cancelHold(); };
+
+
+/* =====================================================
+   [H3] POST CAPTCHA PIPELINE (FINAL)
+===================================================== */
+async function handlePostCaptchaFlow() {
+    await performSignup();
+}
+
+
+
+/* =====================================================
+   [S1] SIGNUP_SUBMIT  → FINAL BACKEND-ALIGNED
+===================================================== */
+async function performSignup() {
+
+    // 🔑 Decide endpoint based on role (FRONTEND responsibility)
+    const endpoint =
+        role === "admin"
+            ? "/auth/signup/admin"          //[mapping]
+            : "/auth/signup/customer";
+
+    // 🔹 Base payload (common fields)
+    const payload = {
+        name: document.getElementById("name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        username: document.getElementById("username").value.trim(),
+        password: document.getElementById("password").value,
+        secQuestion: document
+            .getElementById("secQuestion")
+            .value.trim(),
+        secAnswer: document
+            .getElementById("secAnswer")
+            .value.trim()
+            .toLowerCase()
+    };
+
+    // 🔹 Customer-only field
+    if (role === "customer") {
+        payload.accountType =
+            document.getElementById("accountType").value;
+    }
+
+    try {
+        const res = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        /* ---------- SUCCESS: NEW ACCOUNT ---------- */
+        if (res.status === 201) {
+            alert("Signup successful 🎉");
+            window.location.href = `/loginf.html?role=${role}`;
+            return;
+        }
+
+        /* ---------- VERIFY EXISTING ACCOUNT ---------- */
+        if (res.status === 200 && data.action === "VERIFY_EXISTING_ACCOUNT") {
+            redirectToEmailExists(payload.email);
+            return;
+        }
+
+        /* ---------- BLOCKED CASES ---------- */
+        if (res.status === 409) {
+            alert(data.message || "Signup blocked");
+            return;
+        }
+
+        /* ---------- FALLBACK ---------- */
+        alert("Unexpected response. Please try again.");
+
+    } catch (e) {
+        console.error("Signup error:", e);
+        alert("Server error. Please try again.");
+    }
+}
+
+
+/* =====================================================
+   FORM SUBMIT ENTRY POINT    [S4]
+===================================================== */
+signupForm.onsubmit = e => {
+    e.preventDefault();
+
+    // Layer 0: form validation
+    if (!isFormComplete()) {
+        alert("Please complete all required fields");
+        return;
+    }
+
+    // 🔐 Admin email rule
+    if (role === "admin" && !isAdminEmailValid()) {
+        alert("Admin accounts must use a @vbs.com email");
+        return;
+    }
+
+    if (!isPasswordLengthValid()) {
+        alert("Password must be at least 6 characters long");
+        return;
+    }
+
+    // Layer 1: captcha
+    if (!verified) {
+        openCaptcha();
+        return;
+    }
+
+    // Layer 2+: email check + signup pipeline
+    handlePostCaptchaFlow();
+};
+
+
+
+/* =====================================================
+   RESET CAPTCHA ON FIELD CHANGE
+===================================================== */
+document.querySelectorAll("input, select").forEach(el => {
+    el.addEventListener("input", resetVerification);
+    el.addEventListener("change", resetVerification);
+});
+
+</script>
+</body>
+
+
+</html>

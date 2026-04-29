@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Profile - VBS</title>
+  <script src="theme.js"></script>
+
+  <style>
+    .captcha-modal.hidden {
+  display: none;
+}
+
+    /* ================= THEME ================= */
+
+    :root{
+    --bg-gradient:linear-gradient(135deg,#f1f5f9 0%,#e5e7eb 45%,#f8fafc 100%);
+    --card-bg:#ffffff;
+    --header-gradient:linear-gradient(135deg,#334155 0%,#1e293b 100%);
+    --text-primary:#0f172a;
+    --text-secondary:#475569;
+    --border-color:#d1d5db;
+    --muted-bg:#f1f5f9;
+    --btn-primary:linear-gradient(135deg,#334155 0%,#1e293b 100%);
+    }
+
+    body.dark{
+    --bg-gradient:linear-gradient(135deg,#0f172a 0%,#020617 100%);
+    --card-bg:#0b1220;
+    --header-gradient:linear-gradient(135deg,#1e3a8a 0%,#312e81 100%);
+    --text-primary:#e5e7eb;
+    --text-secondary:#9ca3af;
+    --border-color:#1f2937;
+    --muted-bg:#0f172a;
+    --btn-primary:linear-gradient(135deg,#2563eb 0%,#4f46e5 100%);
+    }
+
+    /* ================= GLOBAL ================= */
+
+    *{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    }
+
+    body{
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    background:var(--bg-gradient);
+    min-height:100vh;
+    padding:20px;
+    color:var(--text-primary);
+    }
+
+    .container{
+    max-width:1000px;
+    margin:auto;
+    background:var(--card-bg);
+    border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);
+    overflow:hidden;
+    }
+
+    /* ================= HEADER ================= */
+
+    .header{
+    background:var(--header-gradient);
+    padding:25px;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    }
+
+    .btn-header{
+    padding:10px 18px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:rgba(255,255,255,0.2);
+    color:white;
+    font-weight:600;
+    }
+
+    .btn-header:hover{
+    background:white;
+    color:#334155;
+    }
+
+    /* ================= CONTENT ================= */
+
+    .content{
+    padding:40px 30px;
+    }
+
+    .profile-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+    margin-bottom:35px;
+    }
+
+    .card{
+    background:var(--muted-bg);
+    border-radius:12px;
+    padding:25px;
+    }
+
+    .card h3{
+    margin-bottom:18px;
+    font-size:18px;
+    }
+
+    .profile-field{
+    margin-bottom:12px;
+    }
+
+    .profile-field small{
+    display:block;
+    font-size:12px;
+    color:var(--text-secondary);
+    }
+
+    .profile-field span{
+    font-weight:600;
+    }
+
+    /* ================= ACCOUNT ACTIONS ================= */
+
+    .action-btn{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:10px;
+    font-weight:600;
+    }
+
+    .update-btn{
+    background:var(--btn-primary);
+    color:white;
+    }
+
+    .delete-btn{
+    background:#ef4444;
+    color:white;
+    }
+
+    /* ================= RECENT ACTIVITY ================= */
+
+    .activity-section{
+    margin-top:20px;
+    }
+
+    .activity-table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--card-bg);
+    }
+
+    .activity-table thead{
+    background:var(--header-gradient);
+    color:white;
+    }
+
+    .activity-table th,
+    .activity-table td{
+    padding:14px;
+    text-align:left;
+    border-bottom:1px solid var(--border-color);
+    font-size:14px;
+    }
+
+    .activity-table td:nth-child(1){
+    font-weight:600;
+    color:#4f46e5;
+    }
+
+    /* ================= PAGINATION ================= */
+
+    .pagination{
+    margin-top:20px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    }
+
+    .pagination button{
+    padding:8px 12px;
+    border:1px solid var(--border-color);
+    background:var(--card-bg);
+    cursor:pointer;
+    border-radius:6px;
+    }
+
+    .pagination .active{
+    background:var(--btn-primary);
+    color:white;
+    border:none;
+    }
+/* ===== DELETE MODAL OVERLAY ===== */
+
+.captcha-modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  backdrop-filter: blur(3px);
+}
+
+.captcha-modal.hidden{
+  display: none;
+}
+
+
+/* ===== MODAL CARD ===== */
+
+.captcha-card{
+  width: 90%;
+  max-width: 380px;
+  padding: 28px;
+  text-align: center;
+
+  background: var(--card-bg);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.06);
+}
+
+
+/* ===== TITLE ===== */
+
+.captcha-card .section-title{
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
+
+/* ===== FORM GROUP ===== */
+
+.captcha-card .form-group{
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+
+/* ===== LABEL ===== */
+
+.captcha-card label{
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+
+/* ===== INPUT ===== */
+
+.captcha-card input{
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--border-color);
+
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.captcha-card input:focus{
+  outline: none;
+  border-color: #2563eb;
+}
+
+
+/* ===== BUTTONS ===== */
+
+.captcha-card button{
+  margin-top: 12px;
+  padding: 10px 16px;
+
+  border-radius: 10px;
+  border: 2px solid var(--border-color);
+
+  background: transparent;
+  color: var(--text-primary);
+
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: all .2s ease;
+}
+
+.captcha-card button:hover{
+  background: rgba(0,0,0,.05);
+}
+
+body.dark .captcha-card button:hover{
+  background: rgba(255,255,255,.08);
+}
+
+
+/* spacing between buttons */
+
+.captcha-card button + button{
+  margin-left: 8px;
+}
+
+    /* DELETE CONFIRM BUTTON */
+
+button.danger-btn{
+  margin-top:12px;
+  padding:10px 16px;
+
+  border-radius:10px;
+  border:none;
+
+  background:#ef4444;
+  color:#ffffff !important;
+
+  font-weight:600;
+  cursor:pointer;
+
+  transition:all .2s ease;
+}
+button.danger-btn:hover{
+  background:#ef4444 !important;
+  color:#ffffff !important;
+  transform:none !important;
+  box-shadow:none !important;
+}
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+
+        <button class="btn-header"
+          onclick="window.location.href='/dashboardf.html?id=' + localStorage.getItem('userId')">
+      ←Dashboard
+    </button>
+
+    <button class="btn-header" id="themeToggleBtn">🌙</button>
+
+  </div>
+
+  <div class="content">
+
+    <!-- ================= PROFILE ================= -->
+
+    <div class="profile-grid">
+
+      <div class="card">
+
+        <h3>Profile Information</h3>
+
+        <div class="profile-field">
+          <small>Full Name</small>
+          <span id="name">Loading...</span>
+        </div>
+
+        <div class="profile-field">
+          <small>Account Type</small>
+          <span id="accountType">Loading...</span>
+        </div>
+
+        <div class="profile-field">
+          <small>Email</small>
+          <span id="email">Loading...</span>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h3>Account Actions</h3>
+
+        <button id="updatePasswordBtn" class="action-btn update-btn" onclick="openPasswordPopup()">
+          Update Password
+        </button>
+
+        <p style="margin-top:15px;font-size:13px;color:var(--text-secondary)">
+          Requesting account deletion will send a request to admin.
+        </p>
+
+        <button id="deleteBtn" class="action-btn delete-btn" onclick="openDeletePopup()">
+          Request Account Deletion
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- ================= RECENT ACTIVITY ================= -->
+
+    <div class="activity-section" id="activitySection">
+
+      <h3 style="margin-bottom:15px">Recent Activity</h3>
+
+      <table class="activity-table">
+
+        <thead>
+        <tr>
+          <th>Description</th>
+          <th>Date</th>
+        </tr>
+        </thead>
+
+        <tbody id="activityBody">
+
+        <tr>
+          <td colspan="2">Loading activity...</td>
+        </tr>
+
+        </tbody>
+
+      </table>
+
+      <div class="pagination" id="pagination"></div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="deleteModal" class="captcha-modal hidden">
+
+  <div class="captcha-card">
+
+    <div class="section-title">Account Deletion</div>
+
+    <p style="font-size:14px;margin-bottom:16px;">
+      Do you really want to request account deletion?
+    </p>
+
+    <div class="form-group" style="margin-bottom:10px;">
+      <label>Password</label>
+      <input type="password" id="deletePassword" required>
+    </div>
+    <div class="form-group" style="margin-bottom:10px;">
+      <label>Security Question</label>
+      <div id="deleteSecurityQuestion">Loading security question...</div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:10px;">
+      <label>Security Answer</label>
+      <input type="text" id="deleteAnswer" required>
+    </div>
+
+    <button class="danger-btn" onclick="submitDeleteRequest()">Send Request</button>
+    <button onclick="closeDeletePopup()">Cancel</button>
+
+  </div>
+</div>
+
+<!-- UPDATE PASSWORD MODAL -->
+
+<div id="updatePasswordModal" class="captcha-modal hidden">
+
+  <div class="captcha-card">
+
+    <div class="section-title">Update Password</div>
+
+    <div class="form-group">
+      <label>Current Password</label>
+      <input type="text" id="currentPassword">
+    </div>
+
+    <div class="form-group">
+      <label>New Password</label>
+      <input type="text" id="newPassword">
+    </div>
+
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <input type="text" id="confirmPassword">
+    </div>
+
+    <button class="action-btn update-btn" onclick="submitPasswordUpdate()">
+      Update Password
+    </button>
+
+    <button onclick="closePasswordPopup()">Cancel</button>
+
+  </div>
+
+</div>
+
+<script>
+  const API_URL = "http://localhost:8082";
+
+  let userId = localStorage.getItem("userId");
+  let username = (
+    localStorage.getItem("username") ||
+    localStorage.getItem("userName") ||
+    ""
+  ).trim();
+  let activities = [];
+  let currentPage = 1;
+  const perPage = 6;
+  let currentAccountStatus = "";
+
+  function setUpdatePasswordEnabled(isEnabled) {
+    const updateBtn = document.getElementById("updatePasswordBtn");
+    if (!updateBtn) return;
+
+    updateBtn.disabled = !isEnabled;
+    updateBtn.style.opacity = isEnabled ? "1" : "0.6";
+    updateBtn.style.cursor = isEnabled ? "pointer" : "not-allowed";
+  }
+
+  function showDeleteRequestedMessage(messageText) {
+    const deleteBtn = document.getElementById("deleteBtn");
+    if (!deleteBtn || !deleteBtn.parentNode) return;
+
+    deleteBtn.style.display = "none";
+
+    let messageDiv = document.getElementById("deleteRequestedMessage");
+    if (!messageDiv) {
+      messageDiv = document.createElement("div");
+      messageDiv.id = "deleteRequestedMessage";
+      messageDiv.style.marginTop = "12px";
+      messageDiv.style.padding = "12px";
+      messageDiv.style.background = "#fef3c7";
+      messageDiv.style.borderRadius = "8px";
+      messageDiv.style.fontSize = "13px";
+      messageDiv.style.color = "#92400e";
+      deleteBtn.parentNode.insertBefore(messageDiv, deleteBtn.nextSibling);
+    }
+
+    messageDiv.textContent = messageText;
+  }
+
+  function applyAccountStatusRules(statusValue) {
+    const normalizedStatus = (statusValue || "").toString().trim().toLowerCase();
+    currentAccountStatus = normalizedStatus;
+
+    const isActive = normalizedStatus === "active";
+    setUpdatePasswordEnabled(isActive);
+
+    if (normalizedStatus === "delete requested") {
+      showDeleteRequestedMessage("Your request for account deletion was sent. Contact admin if you did not request this.");
+    }
+  }
+
+  /* ================= PROFILE LOAD ================= */
+  async function loadProfile() {
+    try {
+      const res = await fetch(`${API_URL}/get-details/${userId}`);
+      const data = await res.json();
+      const profileUsername = (data.username ?? data.userName ?? "").toString().trim();
+      if (profileUsername) {
+        username = profileUsername;
+      }
+      const profileStatus = (
+        data.accountStatus ??
+        data.accountstatus ??
+        data.status ??
+        ""
+      ).toString().trim();
+
+      document.getElementById("name").textContent = data.name || "N/A";
+      document.getElementById("accountType").textContent = data.accountType || "N/A";
+      document.getElementById("email").textContent = data.email || "N/A";
+      applyAccountStatusRules(profileStatus);
+    } catch (error) {
+      console.error("Error loading profile:", error);
+      document.getElementById("name").textContent = "Error loading";
+      document.getElementById("accountType").textContent = "Error loading";
+      document.getElementById("email").textContent = "Error loading";
+    }
+  }
+  async function resolveUsernameForDeleteQuestion() {
+    if (username) return username;
+    if (!userId) return "";
+
+    try {
+      const res = await fetch(`${API_URL}/get-details/${userId}`);
+      if (!res.ok) return "";
+      const data = await res.json();
+      const fetchedUsername = (
+        data.username ??
+        data.userName ??
+        data.user_name ??
+        data.uname ??
+        data?.user?.username ??
+        data?.user?.userName ??
+        ""
+      ).toString().trim();
+      if (fetchedUsername) {
+        username = fetchedUsername;
+      }
+      return username;
+    } catch (error) {
+      console.error("Error resolving username:", error);
+      return "";
+    }
+  }
+
+  async function loadDeleteSecurityQuestion() {
+    const questionEl = document.getElementById("deleteSecurityQuestion");
+    if (!questionEl) return;
+
+    questionEl.textContent = "Loading security question...";
+    if (!userId) {
+      questionEl.textContent = "Unable to load security question";
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const res = await fetch(`${API_URL}/get-secq/${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        signal: controller.signal
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to load security question: ${res.status}`);
+      }
+      const data = await res.json();
+      const secQuestion = (
+        data.secQ ??
+        data.secQuestion ??
+        ""
+      ).toString().trim();
+      questionEl.textContent = secQuestion || "Unable to load security question";
+    } catch (error) {
+      console.error("Error loading security question:", error);
+      questionEl.textContent = "Unable to load security question";
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /* ================= ACTIVITY LOAD ================= */
+  function pickFirstValue(obj, keys) {
+    for (const key of keys) {
+      const value = obj?.[key];
+      if (value !== undefined && value !== null && value !== "") return value;
+    }
+    return null;
+  }
+
+  function normalizeActivityDate(value) {
+    if (value === undefined || value === null || value === "") return "";
+    let text = String(value).trim();
+    if (!text) return "";
+    text = text.replace(" ", "T");
+    text = text.replace(/(\.\d{3})\d+/, "$1");
+    return text;
+  }
+
+  function normalizeActivityRow(item) {
+    const description =
+      pickFirstValue(item, ["description", "message", "title", "details", "note"]) ||
+      "No description";
+    const date = normalizeActivityDate(
+      pickFirstValue(item, ["date", "createdAt", "created_at", "timestamp", "time", "notifiedAt"])
+    );
+
+    return { description, date };
+  }
+
+  function extractActivityList(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (payload && typeof payload === "object") {
+      if (Array.isArray(payload.content)) return payload.content;
+      if (Array.isArray(payload.data)) return payload.data;
+      if (Array.isArray(payload.items)) return payload.items;
+    }
+    return [];
+  }
+
+  function formatActivityDate(dateValue) {
+    if (!dateValue) return "No date";
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) return String(dateValue);
+    return parsed.toLocaleString();
+  }
+
+  function getActivityTime(dateValue) {
+    const time = new Date(dateValue).getTime();
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  async function loadActivity() {
+    try {
+      const res = await fetch(`${API_URL}/recentActivity/${userId}`);
+      const payload = await res.json();
+      activities = extractActivityList(payload)
+        .map(normalizeActivityRow)
+        .sort((a, b) => getActivityTime(b.date) - getActivityTime(a.date));
+      currentPage = 1;
+      render();
+    } catch (error) {
+      console.error("Error loading activity:", error);
+      document.getElementById("activityBody").innerHTML =
+        '<tr><td colspan="2">Error loading activity</td></tr>';
+    }
+  }
+
+  /* ================= RENDER ================= */
+  function render() {
+    const body = document.getElementById("activityBody");
+    const pag = document.getElementById("pagination");
+
+    if (!activities || activities.length === 0) {
+      body.innerHTML = '<tr><td colspan="2">No activity found</td></tr>';
+      pag.innerHTML = "";
+      return;
+    }
+
+    const start = (currentPage - 1) * perPage;
+    const slice = activities.slice(start, start + perPage);
+
+    body.innerHTML = slice.map(a => `
+      <tr>
+        <td>${a.description || 'No description'}</td>
+        <td>${formatActivityDate(a.date)}</td>
+      </tr>
+    `).join("");
+
+    pag.innerHTML = "";
+    const total = Math.ceil(activities.length / perPage);
+
+    for (let i = 1; i <= total; i++) {
+      pag.innerHTML += `
+        <button class="${i === currentPage ? 'active' : ''}"
+          onclick="go(${i})">${i}</button>
+      `;
+    }
+  }
+
+  function go(p) {
+    currentPage = p;
+    render();
+  }
+
+  /* ================= MODAL FUNCTIONS ================= */
+  function openDeletePopup() {
+    console.log("Opening delete modal");
+    const modal = document.getElementById("deleteModal");
+    if (modal) {
+      modal.classList.remove("hidden");
+      document.getElementById("deletePassword").value = "";
+      document.getElementById("deleteAnswer").value = "";
+      const questionEl = document.getElementById("deleteSecurityQuestion");
+      if (questionEl) {
+        questionEl.textContent = "Loading security question...";
+      }
+      loadDeleteSecurityQuestion();
+    } else {
+      console.error("Delete modal not found");
+    }
+    return false;
+  }
+
+  function closeDeletePopup() {
+    console.log("Closing delete modal");
+    const modal = document.getElementById("deleteModal");
+    if (modal) {
+      modal.classList.add("hidden");
+    }
+    return false;
+  }
+
+  function openPasswordPopup() {
+    console.log("Opening password modal - function called");
+    if (currentAccountStatus !== "active") {
+      alert("Password update is available only for Active accounts.");
+      return false;
+    }
+
+    const modal = document.getElementById("updatePasswordModal");
+    console.log("Modal element:", modal);
+
+    if (modal) {
+      modal.classList.remove("hidden");
+      console.log("Modal should now be visible");
+
+      document.getElementById("currentPassword").value = "";
+      document.getElementById("newPassword").value = "";
+      document.getElementById("confirmPassword").value = "";
+    } else {
+      console.error("Update password modal not found!");
+      alert("Error: Modal not found");
+    }
+    return false;
+  }
+
+  function closePasswordPopup() {
+    console.log("Closing password modal");
+    const modal = document.getElementById("updatePasswordModal");
+    if (modal) {
+      modal.classList.add("hidden");
+    }
+    return false;
+  }
+
+  /* SEND DELETE REQUEST */
+  async function submitDeleteRequest() {
+    const password = document.getElementById("deletePassword").value;
+    const answer = document.getElementById("deleteAnswer").value;
+
+    if (!password || !answer) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    const usernameToSend = await resolveUsernameForDeleteQuestion();
+    if (!usernameToSend) {
+      alert("Unable to find username");
+      return;
+    }
+
+    const payload = {
+      userName: usernameToSend,
+      username: usernameToSend,
+      password: password,
+      securityAnswer: answer
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/request-delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      let responseData = null;
+      try {
+        responseData = await res.json();
+      } catch (e) {
+        responseData = null;
+      }
+      const serverMessage = responseData?.message || "";
+
+      if (res.ok) {
+        closeDeletePopup();
+        applyAccountStatusRules("Delete Requested");
+        showDeleteRequestedMessage("Your request for account deletion was sent. Contact admin if you did not request this.");
+      } else if (res.status === 409 && (responseData?.exists === true || serverMessage.toLowerCase().includes("already set to delete requested"))) {
+        closeDeletePopup();
+        applyAccountStatusRules("Delete Requested");
+        showDeleteRequestedMessage(serverMessage || "Your request for account deletion is already pending with admin.");
+      } else {
+        alert(serverMessage || "Error sending request");
+      }
+    } catch (error) {
+      console.error("Delete request error:", error);
+      alert("Server error while requesting deletion");
+    }
+  }
+
+  /* UPDATE PASSWORD */
+  async function submitPasswordUpdate() {
+    const currentPassword = document.getElementById("currentPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("New passwords do not match");
+      return;
+    }
+
+
+    if (newPassword.length < 6) {
+      alert("Password must be at least 6 characters long");
+      return;
+    }
+
+    const payload = {
+      id: userId,
+      currentPassword: currentPassword,
+      newPassword: newPassword
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/update-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const txt = await res.text();
+
+      if (res.ok) {
+        closePasswordPopup();
+        alert("Password updated successfully");
+      } else {
+        alert(txt || "Error updating password");
+      }
+    } catch (error) {
+      console.error("Password update error:", error);
+      alert("Server error while updating password");
+    }
+  }
+
+  /* ================= SCROLL PRESET ================= */
+  function checkOpenActivity() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("section") === "activity") {
+      setTimeout(() => {
+        document.getElementById("activitySection")
+          .scrollIntoView({ behavior: "smooth" });
+      }, 500);
+    }
+  }
+
+  /* ================= BOOT ================= */
+  window.onload = function() {
+    console.log("Page loaded, initializing...");
+    console.log("User ID:", userId);
+
+    if (!userId) {
+      console.error("No user ID found in localStorage");
+      alert("Please log in first");
+      window.location.href = "/loginf.html";
+      return;
+    }
+
+    loadProfile();
+    loadActivity();
+    checkOpenActivity();
+
+    // Verify functions are accessible
+    console.log("openPasswordPopup available:", typeof openPasswordPopup);
+    console.log("openDeletePopup available:", typeof openDeletePopup);
+  }
+
+  window.addEventListener("pageshow", () => {
+    checkOpenActivity();
+  });
+
+  // Attach to window for onclick handlers
+  window.openPasswordPopup = openPasswordPopup;
+  window.closePasswordPopup = closePasswordPopup;
+  window.openDeletePopup = openDeletePopup;
+  window.closeDeletePopup = closeDeletePopup;
+  window.submitDeleteRequest = submitDeleteRequest;
+  window.submitPasswordUpdate = submitPasswordUpdate;
+  window.go = go;
+</script>
+
+</body>
+</html>

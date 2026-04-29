@@ -1,0 +1,559 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VBS-Passbook</title>
+  <script src="theme.js"></script>
+
+
+  
+
+  <style>
+
+  
+:root {
+  --bg-gradient: linear-gradient(135deg, #f1f5f9, #e5e7eb);
+  --card-bg: #ffffff;
+  --header-gradient: linear-gradient(135deg, #334155, #1e293b);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+
+  --muted-bg: #f1f5f9;
+  --border-color: #d1d5db;
+
+  --btn-primary: linear-gradient(135deg, #334155, #1e293b);
+  --header-subtitle: rgba(255,255,255,0.9);
+}
+
+
+body.dark {
+  --bg-gradient: linear-gradient(135deg, #0f172a, #020617);
+  --card-bg: #0b1220;
+  --header-gradient: linear-gradient(135deg, #1e3a8a, #312e81);
+
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+
+  --muted-bg: #0f172a;
+  --border-color: #1f2937;
+
+  --btn-primary: linear-gradient(135deg, #2563eb, #4f46e5);
+  --header-subtitle: rgba(255,255,255,0.85);
+}
+
+  *{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  }
+
+  body{
+  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  background: var(--bg-gradient);
+  min-height:100vh;
+  padding:20px;
+  color: var(--text-primary);
+  }
+
+  .container{
+  max-width:1000px;
+  margin:auto;
+  background: var(--card-bg);
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+  overflow:hidden;
+  }
+
+  
+  .header{
+  background: var(--header-gradient);
+  padding:30px;
+  color:#fff;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  }
+
+  .header-left h1{
+  font-size:28px;
+  }
+
+  .header-left p{
+  font-size:14px;
+  color: var(--header-subtitle);
+  }
+
+  .header > div{
+  display:flex;
+  gap:10px;
+  }
+
+.btn-header{
+  width:auto;
+  height:auto;
+
+  padding:13px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background: rgba(255,255,255,0.18);
+  color:#fff;
+
+  border:none;
+  border-radius:10px;
+
+  font-size:16px;
+  cursor:pointer;
+
+  transition:background .25s ease, transform .15s ease;
+}
+
+
+.btn-header:hover{
+  background:#fff;
+  color:#334155;
+  border-color:#fff;
+}
+
+
+
+  
+  .content{
+  padding:40px 30px;
+  }
+
+  .passbook-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:30px;
+  }
+
+  
+  .balance-card{
+  background: var(--header-gradient);
+  color:#fff;
+  padding:20px 30px;
+  border-radius:10px;
+  }
+
+  .balance-card p{
+  font-size:14px;
+  opacity:0.9;
+  }
+
+  .balance-card .amount{
+  font-size:28px;
+  font-weight:700;
+  }
+
+  
+  .transactions-section{
+  background: var(--muted-bg);
+  padding:30px;
+  border-radius:12px;
+  }
+
+  .transactions-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  }
+
+  .transaction-item{
+  background: var(--card-bg);
+  padding:18px;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-left:5px solid #667eea;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+  }
+
+  .transaction-item.deposit{
+  border-left-color:#43e97b;
+  }
+
+  .transaction-item.withdrawal{
+  border-left-color:#dc2626;
+  }
+
+  .transaction-item.transfer{
+  border-left-color:#4facfe;
+  }
+
+  .transaction-info{
+  display:flex;
+  gap:15px;
+  align-items:center;
+  }
+
+  .transaction-icon{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  }
+
+  .deposit .transaction-icon{
+  background:#d4f8e8;
+  color:#43e97b;
+  }
+
+  .withdrawal .transaction-icon{
+  background:#fee2e2;
+  color:#dc2626;
+  }
+
+  .transfer .transaction-icon{
+  background:#d4e7ff;
+  color:#4facfe;
+  }
+
+  .transaction-details .type{
+  font-weight:600;
+  color: var(--text-primary);
+  }
+
+  .transaction-details .date{
+  font-size:12px;
+  color: var(--text-secondary);
+  }
+
+  .transaction-right{
+  text-align:right;
+  }
+
+  .transaction-amount{
+  font-size:16px;
+  font-weight:700;
+  }
+
+  .deposit .transaction-amount{
+  color:#43e97b;
+  }
+
+  .withdrawal .transaction-amount{
+  color:#dc2626;
+  }
+
+  .transfer .transaction-amount{
+  color:#4facfe;
+  }
+
+  .balance-display{
+  font-size:12px;
+  color: var(--text-secondary);
+  }
+
+  
+  .pagination{
+  margin-top:20px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  }
+
+  .pagination button{
+  padding:8px 12px;
+  border:1px solid var(--border-color);
+  border-radius:6px;
+  cursor:pointer;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  }
+
+  .pagination .active{
+  background: var(--btn-primary);
+  color:#fff;
+  border-color: transparent;
+  }
+
+  
+  .message{
+  display:none;
+  margin-bottom:20px;
+  }
+
+  .message.show{
+  display:block;
+  }
+
+  
+#themeToggleBtn{
+  min-width: unset;
+  width: 42px;
+  padding: 0;
+  font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-left">
+      <a id="dashLink" class="btn-header" onclick="window.location.href='/dashboardf.html?id=' + (localStorage.getItem('userId') || '')">Dashboard</a>
+    </div>
+
+    <div class="header-actions">
+      <button id="themeToggleBtn" class="btn-header"></button>
+      <button id="userNameBtn" class="btn-header" style="display:none"></button>
+      <button class="btn-header" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+
+  <div class="content">
+
+    <div class="passbook-header">
+      <h2>Your Passbook</h2>
+      <div class="balance-card">
+        <p class="balance-label">Current Balance</p>
+        <div class="amount">₹<span id="currentBalance">0.00</span></div>
+      </div>
+    </div>
+
+    <div class="transactions-section">
+      <div id="transactionsList" class="transactions-list"></div>
+      <div id="paginationControls" class="pagination"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Shared config and runtime state.
+  const API_URL = 'http://localhost:8082';
+  const ITEMS_PER_PAGE = 10;
+
+  let userId = '';
+  let role = 'customer';
+  let transactions = [];
+  let currentPage = 1;
+
+  function firstValue(obj, keys){
+      for(const key of keys){
+          const value = obj?.[key];
+          if(value !== undefined && value !== null && value !== '') return value;
+      }
+      return null;
+  }
+
+  function toSafeNumber(value){
+      const n = Number(value);
+      return Number.isFinite(n) ? n : 0;
+  }
+
+  function normalizeDate(value){
+      if(value === undefined || value === null || value === '') return '';
+      let text = String(value).trim();
+      if(!text) return '';
+      text = text.replace(' ', 'T');
+      text = text.replace(/(\.\d{3})\d+/, '$1');
+      return text;
+  }
+
+  function getTransactionTime(value){
+      const t = new Date(normalizeDate(value)).getTime();
+      return Number.isFinite(t) ? t : 0;
+  }
+
+  function formatTypeLabel(typeValue){
+      return String(typeValue)
+          .replace(/_/g, ' ')
+          .toLowerCase()
+          .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function resolveDescription(raw){
+      const direct = firstValue(raw, ['description', 'narration', 'remarks', 'note', 'details', 'message']);
+      if(direct) return String(direct);
+
+      const typeValue = firstValue(raw, ['transactionType', 'txnType', 'type']);
+      if(typeValue) return formatTypeLabel(typeValue);
+
+      return 'Transaction';
+  }
+
+  function normalizeTransaction(raw){
+      const amountValue = firstValue(raw, ['amount', 'transactionAmount', 'txnAmount', 'creditAmount', 'debitAmount']);
+      const balanceValue = firstValue(raw, ['currBalance', 'currentBalance', 'balanceAfter', 'availableBalance', 'balance']);
+      const dateValue = firstValue(raw, ['date', 'transactionDate', 'txnDate', 'createdAt', 'timestamp', 'time']);
+
+      const signedAmount = toSafeNumber(amountValue);
+
+      return {
+          description: resolveDescription(raw),
+          amount: Math.abs(signedAmount),
+          signedAmount,
+          currBalance: toSafeNumber(balanceValue),
+          date: normalizeDate(dateValue)
+      };
+  }
+
+  function extractTransactionList(payload){
+      if(Array.isArray(payload)) return payload;
+      if(payload && typeof payload === 'object'){
+          if(Array.isArray(payload.transactions)) return payload.transactions;
+          if(Array.isArray(payload.content)) return payload.content;
+          if(Array.isArray(payload.data)) return payload.data;
+          if(Array.isArray(payload.items)) return payload.items;
+      }
+      return [];
+  }
+
+
+  function getUserIdFromURL(){
+      const p = new URLSearchParams(window.location.search);
+      userId = p.get('id');
+      role = p.get('role') || 'customer';
+
+      if(!userId){
+          location.href = '/loginf.html';
+          return;
+      }
+
+        document.getElementById('dashLink').href =
+          `/dashboardf.html?id=${userId}&role=${encodeURIComponent(role)}`;
+  }
+
+  function getType(description){
+      const d = (description || '').toLowerCase();
+      if(d.includes('deposit')) return 'deposit';
+      if(d.includes('withdrawal') || d.includes('withdrawn') || d.includes('withdraw') || d.includes('debit')) return 'withdrawal';
+      return 'transfer';
+  }
+
+  function getAmountSign(type, description, signedAmount){
+      const text = (description || '').toLowerCase();
+      if(type === 'transfer' && (text.includes('received') || text.includes('recieved'))) return '+';
+      if(type === 'deposit') return '+';
+      if(toSafeNumber(signedAmount) < 0) return '-';
+      return '-';
+  }
+
+  function getTypeIcon(type){
+      if(type === 'deposit') return '\u2193';
+      if(type === 'withdrawal') return '\u2191';
+      return '\u21C4';
+  }
+
+  function updateBalance(){
+      const balanceEl = document.getElementById('currentBalance');
+      if(!transactions.length){
+          balanceEl.textContent = '0.00';
+          return;
+      }
+
+      const latest = [...transactions].sort((a, b) => getTransactionTime(b.date) - getTransactionTime(a.date))[0];
+      balanceEl.textContent = (latest?.currBalance ?? 0).toFixed(2);
+  }
+
+  // Renders the current page and pagination controls.
+  function render(){
+      const list = document.getElementById('transactionsList');
+      const pag = document.getElementById('paginationControls');
+
+      const sorted = [...transactions].sort((a, b) => getTransactionTime(b.date) - getTransactionTime(a.date));
+      const totalPages = Math.ceil(sorted.length / ITEMS_PER_PAGE);
+      const start = (currentPage - 1) * ITEMS_PER_PAGE;
+      const pageItems = sorted.slice(start, start + ITEMS_PER_PAGE);
+
+      list.innerHTML = pageItems.map(t => {
+          const type = getType(t.description);
+          const sign = getAmountSign(type, t.description, t.signedAmount);
+          const icon = getTypeIcon(type);
+          const parsedDate = getTransactionTime(t.date);
+          const displayDate = parsedDate ? new Date(t.date).toLocaleString('en-IN') : '-';
+
+          return `
+          <div class="transaction-item ${type}">
+              <div class="transaction-info">
+                  <div class="transaction-icon">${icon}</div>
+                  <div class="transaction-details">
+                      <div class="type">${t.description}</div>
+                      <div class="date">${displayDate}</div>
+                  </div>
+              </div>
+              <div class="transaction-right">
+                  <div class="transaction-amount">${sign}\u20B9${t.amount.toFixed(2)}</div>
+                  <div class="balance-display">Balance \u20B9${t.currBalance.toFixed(2)}</div>
+              </div>
+          </div>`;
+      }).join('');
+
+      pag.innerHTML = Array.from({ length: totalPages }, (_, index) => {
+          const page = index + 1;
+          return `<button class="${page === currentPage ? 'active' : ''}" onclick="go(${page})">${page}</button>`;
+      }).join('');
+  }
+
+  function setTransactions(data){
+      const rows = extractTransactionList(data);
+      transactions = rows.map(normalizeTransaction);
+      currentPage = 1;
+      updateBalance();
+      render();
+  }
+
+  async function loadPassbook(){
+      const r = await fetch(`${API_URL}/passbook/${userId}`);
+      const data = await r.json();
+      setTransactions(data);
+  }
+
+  function loadUserName(){
+      const userNameBtn = document.getElementById('userNameBtn');
+      if(!userNameBtn) return;
+
+      const storedName =
+          localStorage.getItem('username') ||
+          localStorage.getItem('userName') ||
+          localStorage.getItem('name') ||
+          '';
+
+      if(!storedName.trim()){
+          userNameBtn.style.display = 'none';
+          return;
+      }
+
+      userNameBtn.textContent = storedName.trim();
+      userNameBtn.style.display = 'inline-flex';
+  }
+
+  function go(p){
+      currentPage = p;
+      render();
+  }
+
+  function logout(){
+      if (window.VBSSession && typeof window.VBSSession.endSession === 'function') {
+        window.VBSSession.endSession();
+      } else {
+        localStorage.removeItem('userId');
+        localStorage.removeItem('role');
+      }
+        location.href = '/homef.html';
+  }
+
+  window.onload = () => {
+      getUserIdFromURL();
+      loadUserName();
+      loadPassbook();
+  };
+</script>
+
+
+</body>
+</html>
+

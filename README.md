@@ -37,15 +37,11 @@ The application provides a Spring Boot backend with JPA repositories and MySQL p
 - Account deletion request flow for customers
 - Startup routine that resets transaction counters for the demo month simulation
 
-## System Architecture
-
-```md
-## 🏗️ System Architecture
+## ??? System Architecture
 
 <p align="center">
   <img src="assets/arch.jpg" alt="System Architecture" width="900">
 </p>
-```
 
 ---
 
@@ -79,7 +75,8 @@ The codebase follows a simple layered REST architecture:
 |-- pom.xml
 |-- mvnw
 |-- mvnw.cmd
-|-- arch.jpg
+|-- assets
+|   `-- arch.jpg
 `-- src
     |-- main
     |   |-- java
@@ -208,4 +205,6 @@ MIT License placeholder.
 
 ## Author
 
-Author: Your Name
+Author: Ninad Kathe
+
+

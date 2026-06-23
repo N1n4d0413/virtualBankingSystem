@@ -9,17 +9,17 @@
 
 ## Short Description
 
-Virtual Banking System is a learning-oriented Spring Boot project that simulates core online banking workflows for both customers and administrators. It demonstrates CRUD-based backend development, relational data modeling, REST API design, and form-driven interaction through static HTML pages. The project is intentionally scoped as a practical academic portfolio piece rather than a production banking platform.
+Virtual Banking System is a Spring Boot application that simulates core online banking workflows for both customers and administrators. It demonstrates backend development with Java, MySQL, Spring Data JPA, and Hibernate, along with a static HTML, CSS, and JavaScript frontend. The project focuses on account handling, transaction processing, and REST-based communication between the browser and backend.
 
 ---
 
-## Problem Statement
+## Motivation
 
-Many students learn web development in isolated pieces without building a complete, end-to-end business application. This project addresses that gap by modeling a simplified banking system where users can create accounts, manage balances, perform transactions, and receive system notifications while administrators can manage customer accounts.
+This project was built to practice designing a complete banking-style application with separate customer and admin workflows in one codebase. It brings together account creation, balance management, transaction history, notifications, and administrative controls in a way that reflects how a small backend system is structured.
 
 ## Solution
 
-The application provides a Spring Boot backend with JPA repositories and MySQL persistence to support account and transaction workflows. It separates customer and admin actions, stores transaction history, and exposes REST endpoints that can be consumed by the bundled static frontend pages.
+The application uses REST APIs backed by Spring Data JPA and MySQL to manage customer and admin operations. Both modules work on the same underlying data model while handling their own flows for sign-up, login, account management, deposits, transfers, notifications, and account administration through the static frontend pages.
 
 ---
 
@@ -37,7 +37,21 @@ The application provides a Spring Boot backend with JPA repositories and MySQL p
 - Account deletion request flow for customers
 - Startup routine that resets transaction counters for the demo month simulation
 
-## ??? System Architecture
+## Screenshots
+
+- Login  
+  ![Login](assets/login.png)
+
+- Dashboard  
+  ![Dashboard](assets/dashboard.png)
+
+- Transactions  
+  ![Transactions](assets/transactions.png)
+
+- Admin Panel  
+  ![Admin Panel](assets/admin-panel.png)
+
+## System Architecture
 
 <p align="center">
   <img src="assets/arch.jpg" alt="System Architecture" width="900">
@@ -59,12 +73,12 @@ The application provides a Spring Boot backend with JPA repositories and MySQL p
 
 The codebase follows a simple layered REST architecture:
 
-- `controller` contains HTTP endpoints for customer, transaction, notification, and admin flows
-- `dto` defines request and response payloads
-- `models` contains JPA entities mapped to the database
-- `repos` provides Spring Data JPA repository access
-- `config` contains startup behavior, including the transaction counter reset
-- `static` contains the browser-facing HTML pages
+- `controller` - Handles HTTP requests and REST endpoints.
+- `dto` - Request and response payloads.
+- `models` - JPA entities.
+- `repos` - Spring Data JPA repositories.
+- `config` - Application configuration and startup logic.
+- `static` - HTML, CSS, and JavaScript frontend.
 
 ---
 
@@ -154,48 +168,33 @@ After startup, open the application on port `8082`. The static pages in `src/mai
 
 ## API Overview
 
-The backend is organized into a small set of REST modules:
+The backend APIs are grouped into the following modules:
 
-- Authentication and account onboarding for customers and admins
-- Customer dashboard and profile lookup
-- Transactions for deposit, withdrawal, transfer, and passbook history
-- Notification retrieval for customers and admins
-- Admin operations for adding, searching, filtering, freezing, unfreezing, and deleting users
-- Password recovery flows using security questions
-
----
-
-## Screenshots
-
-- Login  
-  ![Login](assets/login.png)
-
-- Dashboard  
-  ![Dashboard](assets/dashboard.png)
-
-- Transactions  
-  ![Transactions](assets/transactions.png)
-
-- Admin Panel  
-  ![Admin Panel](assets/admin-panel.png)
-
-## Demo
-
-Demo video placeholder: coming soon.
+- Authentication: customer and admin sign-up, login, and password recovery
+- Customer: dashboard details, profile access, password update, and account deletion request
+- Transactions: deposit, withdrawal, transfer, and passbook history
+- Notifications: customer notifications, admin notifications, and recent activity
+- Admin: add users, search and filter users, freeze and unfreeze users, and delete users
 
 ---
 
-## Future Improvements
+## Possible Future Improvements
 
-- Add password hashing instead of storing plain-text passwords
-- Introduce role-based access control and server-side session handling
-- Add validation, centralized error handling, and cleaner API responses
-- Move the monthly transaction reset to a scheduled job instead of application restart
-- Expand automated tests for controller and repository behavior
+- BCrypt password hashing
+- Spring Security integration
+- Better validation
+- Centralized exception handling
+- Docker support
 
-## Learning Outcomes
+## What I Learned
 
-This project demonstrates practical experience with Spring Boot, REST API design, JPA entity mapping, repository-based data access, and basic transaction logic. It also shows how to connect backend endpoints with static frontend pages and how to structure a small application into clear layers.
+I built practical experience with Spring Boot, REST APIs, Spring Data JPA, Hibernate, MySQL, DTOs, CRUD application design, frontend-backend integration, and Maven. The project also helped me understand how to organize entities, repositories, controllers, and static UI pages into a working full-stack-style application.
+
+---
+
+## Disclaimer
+
+This project was developed for educational purposes to explore backend application development and banking workflows. It is intended to demonstrate software engineering concepts and is not designed for production banking use.
 
 ---
 

@@ -1561,7 +1561,7 @@
         <tr>
           <td colspan="7" class="empty-state">
             <div class="empty-state-icon"></div>
-            <div class="empty-state-text">Failed to load customers</div>
+            <div class="empty-state-text">No customers available</div>
           </td>
         </tr>
       `;
@@ -1569,10 +1569,14 @@
 
     function showMessage(elementId, message, type) {
       const messageEl = document.getElementById(elementId);
-      messageEl.textContent = message;
-      messageEl.className = `message ${type} show`;
+      if (messageEl) {
+        messageEl.textContent = '';
+        messageEl.className = 'message';
+        messageEl.hidden = true;
+      }
+      if (window.vbsShowToast) window.vbsShowToast(message, type);
       setTimeout(() => {
-        messageEl.classList.remove('show');
+        if (messageEl) messageEl.classList.remove('show');
       }, 3000);
     }
 

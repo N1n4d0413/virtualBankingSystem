@@ -579,6 +579,7 @@ button.danger-btn:hover{
       document.getElementById("name").textContent = "Error loading";
       document.getElementById("accountType").textContent = "Error loading";
       document.getElementById("email").textContent = "Error loading";
+      if (window.vbsShowToast) window.vbsShowToast("Error loading profile", "error");
     }
   }
   async function resolveUsernameForDeleteQuestion() {
@@ -711,7 +712,7 @@ button.danger-btn:hover{
     } catch (error) {
       console.error("Error loading activity:", error);
       document.getElementById("activityBody").innerHTML =
-        '<tr><td colspan="2">Error loading activity</td></tr>';
+        '<tr><td colspan="2">No activity available</td></tr>';
     }
   }
 

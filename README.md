@@ -200,7 +200,7 @@ This project was developed for educational purposes to explore backend applicati
 
 ## License
 
-MIT License placeholder.
+MIT License
 
 ## Author
 
